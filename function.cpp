@@ -213,3 +213,15 @@ double MP_mm_ddot(int mat_dim, double **M1, double **M2)
     }
     return val;
 }
+
+void MP_mm_dcopy(int mat_dim, double **M1, double **M2)
+{
+#pragma omp parallel for
+    for (int i = 0; i < mat_dim; i++)
+    {
+        for (int j = 0; j < mat_dim; j++)
+        {
+            M2[i][j] = M1[i][j];
+        }
+    }
+};

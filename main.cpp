@@ -111,7 +111,7 @@ int main()
         for (int j = 0; j < mat_dim; j++)
         {
             M1[i][j] = rand1(mt);
-            M2[i][j] = rand2(mt);
+            M2[i][j] = 0;
         }
     }
     /*-----------------------------------------------------------*/
@@ -136,45 +136,45 @@ int main()
     // /*-----------------------------------------------------------*/
 
     /*----------------Test2 : M1とM2の内積計算を行う------------*/
-    chrono::system_clock::time_point mm_ddot_start, MP_mm_ddot_start, mm_ddot_end, MP_mm_ddot_end;
-    // double vec_ddot = cblas_ddot(state_num, u1, 1, u2, 1);
+    // chrono::system_clock::time_point mm_ddot_start, MP_mm_ddot_start, mm_ddot_end, MP_mm_ddot_end;
+    // // double vec_ddot = cblas_ddot(state_num, u1, 1, u2, 1);
 
-    cout << "\n\n Test2 : mm_ddot()\n";
-    cout << "====================================================\n";
-    string outputfile1 = "./test_ddot/time_ddot.csv";
-    string outputfile2 = "./test_ddot/result_ddot.csv";
-    vector<double> time_mm_ddot;
-    vector<double> time_MP_ddot;
-    vector<double> res_mm_ddot;
-    vector<double> res_MP_ddot;
+    // cout << "\n\n Test2 : mm_ddot()\n";
+    // cout << "====================================================\n";
+    // string outputfile1 = "./test_ddot/time_ddot.csv";
+    // string outputfile2 = "./test_ddot/result_ddot.csv";
+    // vector<double> time_mm_ddot;
+    // vector<double> time_MP_ddot;
+    // vector<double> res_mm_ddot;
+    // vector<double> res_MP_ddot;
 
-    for (int i = 0; i < 100; i++)
-    {
-        mm_ddot_start = chrono::system_clock::now();
-        double mat_ddot = mm_ddot(mat_dim, M1, M2);
-        mm_ddot_end = chrono::system_clock::now();
-        MP_mm_ddot_start = chrono::system_clock::now();
-        double MP_mat_ddot = MP_mm_ddot(mat_dim, M1, M2);
-        MP_mm_ddot_end = chrono::system_clock::now();
+    // for (int i = 0; i < 100; i++)
+    // {
+    //     mm_ddot_start = chrono::system_clock::now();
+    //     double mat_ddot = mm_ddot(mat_dim, M1, M2);
+    //     mm_ddot_end = chrono::system_clock::now();
+    //     MP_mm_ddot_start = chrono::system_clock::now();
+    //     double MP_mat_ddot = MP_mm_ddot(mat_dim, M1, M2);
+    //     MP_mm_ddot_end = chrono::system_clock::now();
 
-        auto mm_ddot_time_msec = chrono::duration_cast<chrono::milliseconds>(mm_ddot_end - mm_ddot_start).count();
-        auto MP_mm_ddot_time_msec = chrono::duration_cast<chrono::milliseconds>(MP_mm_ddot_end - MP_mm_ddot_start).count();
+    //     auto mm_ddot_time_msec = chrono::duration_cast<chrono::milliseconds>(mm_ddot_end - mm_ddot_start).count();
+    //     auto MP_mm_ddot_time_msec = chrono::duration_cast<chrono::milliseconds>(MP_mm_ddot_end - MP_mm_ddot_start).count();
 
-        /*test1関数に渡す用のデータ*/
-        res_mm_ddot.push_back(mat_ddot);
-        res_MP_ddot.push_back(MP_mat_ddot);
-        time_mm_ddot.push_back(mm_ddot_time_msec);
-        time_MP_ddot.push_back(MP_mm_ddot_time_msec);
-    }
+    //     /*test1関数に渡す用のデータ*/
+    //     res_mm_ddot.push_back(mat_ddot);
+    //     res_MP_ddot.push_back(MP_mat_ddot);
+    //     time_mm_ddot.push_back(mm_ddot_time_msec);
+    //     time_MP_ddot.push_back(MP_mm_ddot_time_msec);
+    // }
 
-    test1<double>(res_mm_ddot, res_MP_ddot, outputfile1, 'c');
-    test1<double>(time_mm_ddot, time_MP_ddot, outputfile2, 'c');
+    // test1<double>(res_mm_ddot, res_MP_ddot, outputfile1, 'c');
+    // test1<double>(time_mm_ddot, time_MP_ddot, outputfile2, 'c');
     // cout << "@vec_ddot = " << scientific << setprecision(15) << vec_ddot << endl;
     // cout << "@mat_ddot = " << scientific << setprecision(15) << mat_ddot << endl;
     // cout << "@time(mm_ddot) = " << mm_ddot_time_msec << "msec" << endl;
     // cout << "@MP_mat_ddot = " << scientific << setprecision(15) << MP_mat_ddot << endl;
     // cout << "@time(MP_ddot) = " << MP_mm_ddot_time_msec << "msec" << endl;
-    cout << "====================================================\n";
+    // cout << "====================================================\n";
     /*-----------------------------------------------------------*/
 
     // /*----------------Test3 : M1とM2のノルム計算を行う------------*/
@@ -253,7 +253,70 @@ int main()
     // cout << "====================================================\n";
     /*-----------------------------------------------------------*/
     /*----------------Test2 : M1の要素をM2にコピーする----------*/
-    // mm_dcopy(mat_dim, M1, M2);
+    chrono::system_clock::time_point mm_dcopy_start, MP_mm_dcopy_start, mm_dcopy_end, MP_mm_dcopy_end;
+    mm_dcopy_start = chrono::system_clock::now();
+    mm_dcopy(mat_dim, M1, M2);
+    mm_dcopy_end = chrono::system_clock::now();
+
+    string mm_result = "success";
+    bool is_copy = true;
+    for (int i = 0; i < mat_dim; i++)
+    {
+        if (is_copy)
+        {
+            for (int j = 0; j < mat_dim; j++)
+            {
+                if (M1[i][j] != M2[i][j])
+                {
+                    is_copy = false;
+                    mm_result = "failed.";
+                    break;
+                }
+            }
+        }
+        else
+            break;
+    }
+
+    // 行列M2の初期化
+    for (int i = 0; i < mat_dim; i++)
+    {
+        for (int j = 0; j < mat_dim; j++)
+        {
+            M2[i][j] = 0.;
+        }
+    }
+
+    MP_mm_dcopy_start = chrono::system_clock::now();
+    MP_mm_dcopy(mat_dim, M1, M2);
+    MP_mm_dcopy_end = chrono::system_clock::now();
+
+    string MP_result = "success";
+    is_copy = true;
+    for (int i = 0; i < mat_dim; i++)
+    {
+        if (is_copy)
+        {
+            for (int j = 0; j < mat_dim; j++)
+            {
+                if (M1[i][j] != M2[i][j])
+                {
+                    is_copy = false;
+                    MP_result = "failed.";
+                    break;
+                }
+            }
+        }
+        else
+            break;
+    }
+    auto mm_dcopy_time_msec = chrono::duration_cast<chrono::milliseconds>(mm_dcopy_end - mm_dcopy_start).count();
+    auto MP_mm_dcopy_time_msec = chrono::duration_cast<chrono::milliseconds>(MP_mm_dcopy_end - MP_mm_dcopy_start).count();
+
+    cout << "@mat_dcopy = " << mm_result << endl;
+    cout << "@mat_MP_dcopy = " << MP_result << endl;
+    cout << "@time(mm_ddot) = " << mm_dcopy_time_msec << "msec" << endl;
+    cout << "@time(MP_ddot) = " << MP_mm_dcopy_time_msec << "msec" << endl;
 
     // //結果の確認
     // cout << "====================================================\n";
