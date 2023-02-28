@@ -1,8 +1,7 @@
-#include <math.h>
-#include <mkl.h>
+#include "MBLAS.h"
+#include <omp.h>
 
-#include <iomanip>
-#include <iostream>
+using namespace std;
 
 // mm_ddot : 状態ベクトルの内積計算の状態行列version
 double mm_ddot(int mat_dim, double **M1, double **M2)
@@ -67,14 +66,14 @@ double mm_dnrm2(int mat_dim, double **M)
     return sqrt(val);
 }
 
-//状態行列の規格化
+// 状態行列の規格化
 void mm_sdz(int mat_dim, double **M)
 {
     double a = 1. / mm_dnrm2(mat_dim, M);
     mm_dscal(mat_dim, a, M);
 };
 
-//状態ベクトルの成分を状態行列にコピーする M = vec
+// 状態ベクトルの成分を状態行列にコピーする M = vec
 void mv_copy(int mat_dim, double *vec, double **M)
 {
     for (int i = 0; i < mat_dim; i++)
@@ -92,7 +91,7 @@ void sdz(int dim, double *vec)
     cblas_dscal(dim, a, vec, 1);
 }
 
-//状態行列の表示
+// 状態行列の表示
 void print_mat(int mat_dim, double **M)
 {
     double mtmp;
@@ -103,7 +102,63 @@ void print_mat(int mat_dim, double **M)
         {
             mtmp = M[row_num][col_num];
             // printf("%5.8e", mtmp);
-            std::cout << std::scientific << std::setprecision(4) << mtmp;
+            std::cout << std::scientific << std::setprecision(15) << mtmp;
+            if (col_num < mat_dim - 1)
+            {
+                std::cout << "  ";
+            }
+        }
+        if (row_num < mat_dim - 1)
+        {
+            std::cout << "];" << std::endl;
+        }
+        else
+        {
+            std::cout << "]";
+        }
+    }
+    std::cout << "]" << std::endl;
+}
+// M x N状態行列の表示
+void print_mat(int dim_A, int dim_B, std::vector<std::vector<double>> M)
+{
+    double mtmp;
+    for (int row_num = 0; row_num < dim_A; row_num++)
+    {
+        std::cout << "[";
+        for (int col_num = 0; col_num < dim_B; col_num++)
+        {
+            mtmp = M[row_num][col_num];
+            // printf("%5.8e", mtmp);
+            std::cout << std::scientific << std::setprecision(15) << mtmp;
+            if (col_num < dim_B - 1)
+            {
+                std::cout << "  ";
+            }
+        }
+        if (row_num < dim_A - 1)
+        {
+            std::cout << "];" << std::endl;
+        }
+        else
+        {
+            std::cout << "]";
+        }
+    }
+    std::cout << "]" << std::endl;
+}
+
+void print_mat(int mat_dim, std::vector<std::vector<double>> M)
+{
+    double mtmp;
+    for (int row_num = 0; row_num < mat_dim; row_num++)
+    {
+        std::cout << "[";
+        for (int col_num = 0; col_num < mat_dim; col_num++)
+        {
+            mtmp = M[row_num][col_num];
+            // printf("%5.8e", mtmp);
+            std::cout << std::scientific << std::setprecision(15) << mtmp;
             if (col_num < mat_dim - 1)
             {
                 std::cout << "  ";
@@ -121,7 +176,7 @@ void print_mat(int mat_dim, double **M)
     std::cout << "]" << std::endl;
 }
 
-//状態ベクトルの表示
+// 状態ベクトルの表示
 void print_vec(int mat_dim, double *vec)
 {
     double mtmp;
@@ -131,7 +186,7 @@ void print_vec(int mat_dim, double *vec)
     {
         mtmp = vec[col_num];
         // printf("%5.8e", mtmp);
-        std::cout << std::scientific << std::setprecision(4) << mtmp;
+        std::cout << std::scientific << std::setprecision(15) << mtmp;
         if (col_num < mat_dim - 1)
         {
             std::cout << "  ";
@@ -140,4 +195,21 @@ void print_vec(int mat_dim, double *vec)
     std::cout << "]";
 
     std::cout << "]" << std::endl;
+}
+
+/*---------------OpenMPを利用した並列処理を施したversion---------------*/
+// mm_ddot : 状態ベクトルの内積計算の状態行列version
+double MP_mm_ddot(int mat_dim, double **M1, double **M2)
+{
+    double val = 0.;
+#pragma omp parallel for reduction(+ \
+                                   : val)
+    for (int i = 0; i < mat_dim; i++)
+    {
+        for (int j = 0; j < mat_dim; j++)
+        {
+            val += M1[i][j] * M2[i][j];
+        }
+    }
+    return val;
 }
