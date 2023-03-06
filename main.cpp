@@ -70,14 +70,15 @@ void mmprod()
             }
         }
     }
-    cout << "psi1 = \n";
-    print_mat(dim_A, dim_B, psi1);
+    // cout << "psi1 = \n";
+    // print_mat(dim_A, dim_B, psi1);
 }
+
 int main()
 {
-    omp_set_num_threads(NUM_THREADS);
+    omp_set_num_threads(NUM_THREADS); //[comment : ここでsetするのではなく、ターミナルで一度設定するだけで良いらしい]
     cout << "max_thread_num = " << omp_get_max_threads() << endl;
-    cout << "thread_num = " << omp_get_thread_num() << endl;
+    // cout << "thread_num = " << omp_get_thread_num() << endl;
 
     mmprod();
     // isoB_mmprod();
