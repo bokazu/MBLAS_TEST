@@ -8,35 +8,15 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <random>
+#include <chrono>
+#include "MBLAS.h"
 
-template <typename T>
-void test1(std::vector<T> &data1, std::vector<T> &data2, std::string filepath, char mode)
-{
-    int N = data1.size();
-    std::ofstream ofs(filepath);
-    // fileをopenできるか確認する
-    if (!ofs)
-    {
-        printf("@test1(data1, data2, filepath, mode) error:: \"%s\" could not open.", filepath);
-    }
-    else
-    {
-        if (mode == 'c') // csv出力
-        {
-            for (int i = 0; i < N; i++)
-            {
-                ofs << data1[i] << "," << data2[i] << std::endl;
-            }
-        }
-        else // txt出力
-        {
-            for (int i = 0; i < N; i++)
-            {
-                ofs << data1[i] << " " << data2[i] << std::endl;
-            }
-        }
-    }
-    ofs.close();
-};
-
+// mm_ddot, MP_mm_ddot, MP_schedule_mm_ddotの(i)計算結果,(ii)計算時間のテストを行う
+void test_mm_ddot(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode = 'c');
+void test_mm_dcopy(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode = 'c');
+void test_mm_dnrm2(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode = 'c');
+void test_mm_dscal(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode = 'c');
+void test_mm_daxpy(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode = 'c');
+void test_mm_sdz(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode = 'c');
 #endif

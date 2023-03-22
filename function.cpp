@@ -214,6 +214,21 @@ double MP_mm_ddot(int mat_dim, double **M1, double **M2)
     return val;
 }
 
+double MP_schedule_mm_ddot(int mat_dim, double **M1, double **M2)
+{
+    double val = 0.;
+#pragma omp parallel for schedule(runtime) reduction(+ \
+                                                     : val)
+    for (int i = 0; i < mat_dim; i++)
+    {
+        for (int j = 0; j < mat_dim; j++)
+        {
+            val += M1[i][j] * M2[i][j];
+        }
+    }
+    return val;
+}
+
 void MP_mm_dcopy(int mat_dim, double **M1, double **M2)
 {
 #pragma omp parallel for
@@ -224,4 +239,108 @@ void MP_mm_dcopy(int mat_dim, double **M1, double **M2)
             M2[i][j] = M1[i][j];
         }
     }
+};
+
+void MP_schedule_mm_dcopy(int mat_dim, double **M1, double **M2)
+{
+#pragma omp parallel for schedule(runtime)
+    for (int i = 0; i < mat_dim; i++)
+    {
+        for (int j = 0; j < mat_dim; j++)
+        {
+            M2[i][j] = M1[i][j];
+        }
+    }
+}
+
+double MP_mm_dnrm2(int mat_dim, double **M1)
+{
+    double val = 0.;
+#pragma omp parallel for reduction(+ \
+                                   : val)
+    for (int i = 0; i < mat_dim; i++)
+    {
+        for (int j = 0; j < mat_dim; j++)
+        {
+            val += M1[i][j] * M1[i][j];
+        }
+    }
+    return sqrt(val);
+}
+
+double MP_schedule_mm_dnrm2(int mat_dim, double **M)
+{
+    double val = 0.;
+#pragma omp parallel for schedule(runtime) reduction(+ \
+                                                     : val)
+    for (int i = 0; i < mat_dim; i++)
+    {
+        for (int j = 0; j < mat_dim; j++)
+        {
+            val += M[i][j] * M[i][j];
+        }
+    }
+    return sqrt(val);
+}
+
+// mm_dscal M1 = α*M1
+void MP_mm_dscal(int mat_dim, double alpha, double **M1)
+{
+#pragma omp parallel for
+    for (int i = 0; i < mat_dim; i++)
+    {
+        for (int j = 0; j < mat_dim; j++)
+        {
+            M1[i][j] *= alpha;
+        }
+    }
+}
+
+void MP_schedule_mm_dscal(int mat_dim, double alpha, double **M1)
+{
+#pragma omp parallel for schedule(runtime)
+    for (int i = 0; i < mat_dim; i++)
+    {
+        for (int j = 0; j < mat_dim; j++)
+        {
+            M1[i][j] *= alpha;
+        }
+    }
+}
+
+// mm_daxpy M2 += α*M1
+void MP_mm_daxpy(int mat_dim, double alpha, double **M1, double **M2)
+{
+#pragma omp parallel for
+    for (int i = 0; i < mat_dim; i++)
+    {
+        for (int j = 0; j < mat_dim; j++)
+        {
+            M2[i][j] += alpha * M1[i][j];
+        }
+    }
+}
+
+void MP_schedule_mm_daxpy(int mat_dim, double alpha, double **M1, double **M2)
+{
+#pragma omp parallel for schedule(runtime)
+    for (int i = 0; i < mat_dim; i++)
+    {
+        for (int j = 0; j < mat_dim; j++)
+        {
+            M2[i][j] += alpha * M1[i][j];
+        }
+    }
+}
+
+void MP_mm_sdz(int mat_dim, double **M)
+{
+    double a = 1. / MP_mm_dnrm2(mat_dim, M);
+    MP_mm_dscal(mat_dim, a, M);
+};
+
+void MP_schedule_mm_sdz(int mat_dim, double **M)
+{
+    double a = 1. / MP_schedule_mm_dnrm2(mat_dim, M);
+    MP_schedule_mm_dscal(mat_dim, a, M);
 };

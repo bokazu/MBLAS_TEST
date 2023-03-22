@@ -80,18 +80,62 @@ int main()
     cout << "max_thread_num = " << omp_get_max_threads() << endl;
     // cout << "thread_num = " << omp_get_thread_num() << endl;
 
-    mmprod();
+    // mmprod();
     // isoB_mmprod();
     int state_num = 16;
     int mat_dim = 50000;
+    int daxpy_mat_dim = 10000; // daxpyのテストコードは他と比べて消費メモリ量が大きいので別途変数を用意した
+
+    /*--------------------Test1--------------------*/
+    // cout << "\n\n Test1 : mm_dcopy()\n";
+    // cout << "====================================================\n";
+    // test_mm_dcopy(10, mat_dim, "./test_dcopy/result_dcopy.csv", "./test_dcopy/time_dcopy.csv");
+    // cout << "====================================================\n";
+    /*---------------------------------------------*/
+
+    /*----------------Test2 : M1とM2の内積計算を行う------------*/
+    // cout << "\n\n Test2 : mm_ddot()\n";
+    // cout << "====================================================\n";
+    // test_mm_ddot(10, mat_dim, "./test_ddot/result_ddot.csv", "./test_ddot/time_ddot.csv");
+    // cout << "====================================================\n";
+    /*-----------------------------------------------------------*/
+
+    /*----------------Test3 : M1とM2のノルム計算を行う------------*/
+    // cout << "\n\n Test3 : mm_dnrm2()\n";
+    // cout << "====================================================\n";
+    // test_mm_dnrm2(10, mat_dim, "./test_dnrm2/result_dnrm2.csv", "./test_dnrm2/time_dnrm2.csv");
+    // cout << "====================================================\n";
+    /*-----------------------------------------------------------*/
+
+    /*----------------Test4 : dscalの計算の確認------------------*/
+    // cout << "\n\n Test4 : mm_dscal()\n";
+    // cout << "====================================================\n";
+    // test_mm_dscal(10, mat_dim, "./test_dscal/result_dscal.csv", "./test_dscal/time_dscal.csv");
+    // cout << "====================================================\n";
+    /*-----------------------------------------------------------*/
+
+    /*----------------Test5 : daxpyの計算の確認------------------*/
+    // cout << "\n\n Test5 : mm_daxpy()\n";
+    // cout << "====================================================\n";
+    // test_mm_daxpy(10, daxpy_mat_dim, "./test_daxpy/result_daxpy.csv", "./test_daxpy/time_daxpy.csv");
+    // cout << "====================================================\n";
+    /*-----------------------------------------------------------*/
+
+    /*----------------Test6 : sdzの計算の確認------------------*/
+    cout << "\n\n Test6 : mm_sdz()\n";
+    cout << "====================================================\n";
+    test_mm_sdz(10, mat_dim, "./test_sdz/result_sdz.csv", "./test_sdz/time_sdz.csv");
+    cout << "====================================================\n";
+    /*-----------------------------------------------------------*/
+
     // /*-----------状態ベクトルのメモリ確保&random初期化-----------*/
     // double *u1 = new double[state_num];
     // double *u2 = new double[state_num];
 
-    random_device rand;
-    mt19937 mt(rand());
-    uniform_real_distribution<> rand1(0, 1);
-    uniform_real_distribution<> rand2(0, 1);
+    // random_device rand;
+    // mt19937 mt(rand());
+    // uniform_real_distribution<> rand1(0, 1);
+    // uniform_real_distribution<> rand2(0, 1);
     // for (int i = 0; i < state_num; i++)
     //     u1[i] = rand1(mt);
     // for (int i = 0; i < state_num; i++)
@@ -99,22 +143,22 @@ int main()
     // /*-----------------------------------------------------------*/
 
     /*------------------------状態行列の用意(簡単のために正方行列として用意する)---------------------*/
-    double **M1 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M1[i] = new double[mat_dim];
+    // double **M1 = new double *[mat_dim];
+    // for (int i = 0; i < mat_dim; i++)
+    //     M1[i] = new double[mat_dim];
 
-    double **M2 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M2[i] = new double[mat_dim];
+    // double **M2 = new double *[mat_dim];
+    // for (int i = 0; i < mat_dim; i++)
+    //     M2[i] = new double[mat_dim];
 
-    for (int i = 0; i < mat_dim; i++)
-    {
-        for (int j = 0; j < mat_dim; j++)
-        {
-            M1[i][j] = rand1(mt);
-            M2[i][j] = 0;
-        }
-    }
+    // for (int i = 0; i < mat_dim; i++)
+    // {
+    //     for (int j = 0; j < mat_dim; j++)
+    //     {
+    //         M1[i][j] = rand1(mt);
+    //         M2[i][j] = rand1(mt);
+    //     }
+    // }
     /*-----------------------------------------------------------*/
 
     /*----------------Test1 : uの要素をMにコピーする------------*/
@@ -135,48 +179,6 @@ int main()
     // print_mat(mat_dim, M2);
     // cout << "====================================================\n";
     // /*-----------------------------------------------------------*/
-
-    /*----------------Test2 : M1とM2の内積計算を行う------------*/
-    // chrono::system_clock::time_point mm_ddot_start, MP_mm_ddot_start, mm_ddot_end, MP_mm_ddot_end;
-    // // double vec_ddot = cblas_ddot(state_num, u1, 1, u2, 1);
-
-    // cout << "\n\n Test2 : mm_ddot()\n";
-    // cout << "====================================================\n";
-    // string outputfile1 = "./test_ddot/time_ddot.csv";
-    // string outputfile2 = "./test_ddot/result_ddot.csv";
-    // vector<double> time_mm_ddot;
-    // vector<double> time_MP_ddot;
-    // vector<double> res_mm_ddot;
-    // vector<double> res_MP_ddot;
-
-    // for (int i = 0; i < 100; i++)
-    // {
-    //     mm_ddot_start = chrono::system_clock::now();
-    //     double mat_ddot = mm_ddot(mat_dim, M1, M2);
-    //     mm_ddot_end = chrono::system_clock::now();
-    //     MP_mm_ddot_start = chrono::system_clock::now();
-    //     double MP_mat_ddot = MP_mm_ddot(mat_dim, M1, M2);
-    //     MP_mm_ddot_end = chrono::system_clock::now();
-
-    //     auto mm_ddot_time_msec = chrono::duration_cast<chrono::milliseconds>(mm_ddot_end - mm_ddot_start).count();
-    //     auto MP_mm_ddot_time_msec = chrono::duration_cast<chrono::milliseconds>(MP_mm_ddot_end - MP_mm_ddot_start).count();
-
-    //     /*test1関数に渡す用のデータ*/
-    //     res_mm_ddot.push_back(mat_ddot);
-    //     res_MP_ddot.push_back(MP_mat_ddot);
-    //     time_mm_ddot.push_back(mm_ddot_time_msec);
-    //     time_MP_ddot.push_back(MP_mm_ddot_time_msec);
-    // }
-
-    // test1<double>(res_mm_ddot, res_MP_ddot, outputfile1, 'c');
-    // test1<double>(time_mm_ddot, time_MP_ddot, outputfile2, 'c');
-    // cout << "@vec_ddot = " << scientific << setprecision(15) << vec_ddot << endl;
-    // cout << "@mat_ddot = " << scientific << setprecision(15) << mat_ddot << endl;
-    // cout << "@time(mm_ddot) = " << mm_ddot_time_msec << "msec" << endl;
-    // cout << "@MP_mat_ddot = " << scientific << setprecision(15) << MP_mat_ddot << endl;
-    // cout << "@time(MP_ddot) = " << MP_mm_ddot_time_msec << "msec" << endl;
-    // cout << "====================================================\n";
-    /*-----------------------------------------------------------*/
 
     // /*----------------Test3 : M1とM2のノルム計算を行う------------*/
     // double u1_norm = cblas_dnrm2(state_num, u1, 1);
@@ -254,70 +256,70 @@ int main()
     // cout << "====================================================\n";
     /*-----------------------------------------------------------*/
     /*----------------Test2 : M1の要素をM2にコピーする----------*/
-    chrono::system_clock::time_point mm_dcopy_start, MP_mm_dcopy_start, mm_dcopy_end, MP_mm_dcopy_end;
-    mm_dcopy_start = chrono::system_clock::now();
-    mm_dcopy(mat_dim, M1, M2);
-    mm_dcopy_end = chrono::system_clock::now();
+    // chrono::system_clock::time_point mm_dcopy_start, MP_mm_dcopy_start, mm_dcopy_end, MP_mm_dcopy_end;
+    // mm_dcopy_start = chrono::system_clock::now();
+    // mm_dcopy(mat_dim, M1, M2);
+    // mm_dcopy_end = chrono::system_clock::now();
 
-    string mm_result = "success";
-    bool is_copy = true;
-    for (int i = 0; i < mat_dim; i++)
-    {
-        if (is_copy)
-        {
-            for (int j = 0; j < mat_dim; j++)
-            {
-                if (M1[i][j] != M2[i][j])
-                {
-                    is_copy = false;
-                    mm_result = "failed.";
-                    break;
-                }
-            }
-        }
-        else
-            break;
-    }
+    // string mm_result = "success";
+    // bool is_copy = true;
+    // for (int i = 0; i < mat_dim; i++)
+    // {
+    //     if (is_copy)
+    //     {
+    //         for (int j = 0; j < mat_dim; j++)
+    //         {
+    //             if (M1[i][j] != M2[i][j])
+    //             {
+    //                 is_copy = false;
+    //                 mm_result = "failed.";
+    //                 break;
+    //             }
+    //         }
+    //     }
+    //     else
+    //         break;
+    // }
 
-    // 行列M2の初期化
-    for (int i = 0; i < mat_dim; i++)
-    {
-        for (int j = 0; j < mat_dim; j++)
-        {
-            M2[i][j] = 0.;
-        }
-    }
+    // // 行列M2の初期化
+    // for (int i = 0; i < mat_dim; i++)
+    // {
+    //     for (int j = 0; j < mat_dim; j++)
+    //     {
+    //         M2[i][j] = 0.;
+    //     }
+    // }
 
-    MP_mm_dcopy_start = chrono::system_clock::now();
-    MP_mm_dcopy(mat_dim, M1, M2);
-    MP_mm_dcopy_end = chrono::system_clock::now();
+    // MP_mm_dcopy_start = chrono::system_clock::now();
+    // MP_mm_dcopy(mat_dim, M1, M2);
+    // MP_mm_dcopy_end = chrono::system_clock::now();
 
-    string MP_result = "success";
-    is_copy = true;
-    for (int i = 0; i < mat_dim; i++)
-    {
-        if (is_copy)
-        {
-            for (int j = 0; j < mat_dim; j++)
-            {
-                if (M1[i][j] != M2[i][j])
-                {
-                    is_copy = false;
-                    MP_result = "failed.";
-                    break;
-                }
-            }
-        }
-        else
-            break;
-    }
-    auto mm_dcopy_time_msec = chrono::duration_cast<chrono::milliseconds>(mm_dcopy_end - mm_dcopy_start).count();
-    auto MP_mm_dcopy_time_msec = chrono::duration_cast<chrono::milliseconds>(MP_mm_dcopy_end - MP_mm_dcopy_start).count();
+    // string MP_result = "success";
+    // is_copy = true;
+    // for (int i = 0; i < mat_dim; i++)
+    // {
+    //     if (is_copy)
+    //     {
+    //         for (int j = 0; j < mat_dim; j++)
+    //         {
+    //             if (M1[i][j] != M2[i][j])
+    //             {
+    //                 is_copy = false;
+    //                 MP_result = "failed.";
+    //                 break;
+    //             }
+    //         }
+    //     }
+    //     else
+    //         break;
+    // }
+    // auto mm_dcopy_time_msec = chrono::duration_cast<chrono::milliseconds>(mm_dcopy_end - mm_dcopy_start).count();
+    // auto MP_mm_dcopy_time_msec = chrono::duration_cast<chrono::milliseconds>(MP_mm_dcopy_end - MP_mm_dcopy_start).count();
 
-    cout << "@mat_dcopy = " << mm_result << endl;
-    cout << "@mat_MP_dcopy = " << MP_result << endl;
-    cout << "@time(mm_ddot) = " << mm_dcopy_time_msec << "msec" << endl;
-    cout << "@time(MP_ddot) = " << MP_mm_dcopy_time_msec << "msec" << endl;
+    // cout << "@mat_dcopy = " << mm_result << endl;
+    // cout << "@mat_MP_dcopy = " << MP_result << endl;
+    // cout << "@time(mm_ddot) = " << mm_dcopy_time_msec << "msec" << endl;
+    // cout << "@time(MP_ddot) = " << MP_mm_dcopy_time_msec << "msec" << endl;
 
     // //結果の確認
     // cout << "====================================================\n";
@@ -331,11 +333,11 @@ int main()
     // delete[] u1;
     // delete[] u2;
 
-    for (int i = 0; i < mat_dim; i++)
-        delete[] M1[i];
-    delete[] M1;
+    // for (int i = 0; i < mat_dim; i++)
+    //     delete[] M1[i];
+    // delete[] M1;
 
-    for (int i = 0; i < mat_dim; i++)
-        delete[] M2[i];
-    delete[] M2;
+    // for (int i = 0; i < mat_dim; i++)
+    //     delete[] M2[i];
+    // delete[] M2;
 }
