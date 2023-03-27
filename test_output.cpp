@@ -1060,3 +1060,719 @@ void test_mm_sdz(int trial_num, int mat_dim, std::string PATH_result_of_calc, st
         delete[] M3[i];
     delete[] M3;
 };
+
+void test_isoA_mmprod(int trial_num, int dim_A, int dim_B, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
+{
+    // 初期状態行列の用意
+    // dim_A, dim_Bは4とする
+    dim_A = 4;
+    dim_B = 4;
+
+    random_device rand;
+    mt19937 mt(rand());
+    uniform_real_distribution<> rand1(0, 0.1);
+    uniform_real_distribution<> rand2(0, 0.1);
+
+    double **M1 = new double *[dim_A];
+    for (int i = 0; i < dim_A; i++)
+        M1[i] = new double[dim_A];
+
+    double **M2 = new double *[dim_B];
+    for (int i = 0; i < dim_B; i++)
+        M2[i] = new double[dim_B];
+
+    double **M3 = new double *[dim_B];
+    for (int i = 0; i < dim_B; i++)
+        M3[i] = new double[dim_B];
+
+    // M2とM3を初期化するための行列
+    double **M4 = new double *[dim_B];
+    for (int i = 0; i < dim_B; i++)
+        M4[i] = new double[dim_B];
+
+    for (int i = 0; i < dim_A; i++)
+    {
+        for (int j = 0; j < dim_B; j++)
+        {
+            M1[i][j] = rand1(mt);
+            M2[i][j] = rand2(mt);
+            M3[i][j] = M2[i][j]; // testのためにM3とM2は等価な行列とする
+            M4[i][j] = M2[i][j];
+        }
+    }
+
+    // 疎行列ｰ密行列積の実施と計算時間の測定を行う
+    chrono::system_clock::time_point mmprod_start, MP_mmprod_start, mmprod_end, MP_mmprod_end;
+    cout << "\n\n Test : isoA_mmprod\n";
+    cout << "====================================================\n";
+    // 各種内積計算の時間測定結果を格納する
+    vector<double> time_mmprod;
+    vector<double> time_MP_mmprod;
+
+    // trial_num回だけテストを実施する
+    for (int i = 0; i < trial_num; i++)
+    {
+        // About isoA_mmprod
+        mmprod_start = chrono::system_clock::now();
+        isoA_mmprod(dim_A, dim_B, M1, M2);
+        mmprod_end = chrono::system_clock::now();
+
+        // About MP_isoA_mmprod
+        MP_mmprod_start = chrono::system_clock::now();
+        MP_isoA_mmprod(dim_A, dim_B, M1, M3);
+        MP_mmprod_end = chrono::system_clock::now();
+
+        // 時間計測結果をミリ秒に変換
+        auto mmprod_time_msec = chrono::duration_cast<chrono::milliseconds>(mmprod_end - mmprod_start).count();
+        auto MP_mmprod_msec = chrono::duration_cast<chrono::milliseconds>(MP_mmprod_end - MP_mmprod_start).count();
+
+        // 時間計測結果を各種配列に保存する
+        time_mmprod.push_back(mmprod_time_msec);
+        time_MP_mmprod.push_back(MP_mmprod_msec);
+
+        // 計算結果をファイル出力する
+        std::ofstream ofs_calc(PATH_result_of_calc, std::ios::app);
+        // fileをopenできる確認する
+        if (!ofs_calc)
+        {
+            printf("@test_isoA_mmprod error:: \"%s\" could not open.", PATH_result_of_calc.c_str());
+        }
+        else
+        {
+            if (mode == 'c') // csv出力
+            {
+                ofs_calc << "@isoA_mmprod's result @trial_num = " << i << endl;
+                ofs_calc << "--------------------------------------\n";
+                for (int n = 0; n < dim_A; n++)
+                {
+                    for (int m = 0; m < dim_B; m++)
+                    {
+                        ofs_calc << setprecision(16) << M2[n][m] << " , ";
+                    }
+                    ofs_calc << "\n";
+                }
+                ofs_calc << "--------------------------------------\n";
+
+                ofs_calc << "@MP_isoA_mmprod's result @trial_num = " << i << endl;
+                ofs_calc << "--------------------------------------\n";
+                for (int n = 0; n < dim_A; n++)
+                {
+                    for (int m = 0; m < dim_B; m++)
+                    {
+                        ofs_calc << setprecision(16) << M3[n][m] << " , ";
+                    }
+                    ofs_calc << "\n";
+                }
+                ofs_calc << "--------------------------------------\n";
+            }
+        }
+        ofs_calc.close();
+
+        // 行列M2,M3の初期化
+        for (int n = 0; n < dim_A; n++)
+        {
+            for (int m = 0; m < dim_B; m++)
+            {
+                M2[n][m] = M4[n][m];
+                M3[n][m] = M4[n][m];
+            }
+        }
+    }
+    // relase memory
+    for (int i = 0; i < dim_A; i++)
+        delete[] M1[i];
+    delete[] M1;
+
+    for (int i = 0; i < dim_B; i++)
+        delete[] M2[i];
+    delete[] M2;
+
+    for (int i = 0; i < dim_B; i++)
+        delete[] M3[i];
+    delete[] M3;
+
+    for (int i = 0; i < dim_B; i++)
+        delete[] M4[i];
+    delete[] M4;
+}
+
+void test_isoB_mmprod(int trial_num, int dim_A, int dim_B, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
+{
+    // 初期状態行列の用意
+    // dim_A, dim_Bは4とする
+    dim_A = 4;
+    dim_B = 4;
+
+    random_device rand;
+    mt19937 mt(rand());
+    uniform_real_distribution<> rand1(0, 0.1);
+    uniform_real_distribution<> rand2(0, 0.1);
+
+    double **M1 = new double *[dim_A];
+    for (int i = 0; i < dim_A; i++)
+        M1[i] = new double[dim_A];
+
+    double **M2 = new double *[dim_B];
+    for (int i = 0; i < dim_B; i++)
+        M2[i] = new double[dim_B];
+
+    double **M3 = new double *[dim_B];
+    for (int i = 0; i < dim_B; i++)
+        M3[i] = new double[dim_B];
+
+    // M2とM3を初期化するための行列
+    double **M4 = new double *[dim_B];
+    for (int i = 0; i < dim_B; i++)
+        M4[i] = new double[dim_B];
+
+    for (int i = 0; i < dim_A; i++)
+    {
+        for (int j = 0; j < dim_B; j++)
+        {
+            M1[i][j] = rand1(mt);
+            M2[i][j] = rand2(mt);
+            M3[i][j] = M2[i][j]; // testのためにM3とM2は等価な行列とする
+            M4[i][j] = M2[i][j];
+        }
+    }
+
+    // 疎行列ｰ密行列積の実施と計算時間の測定を行う
+    chrono::system_clock::time_point mmprod_start, MP_mmprod_start, mmprod_end, MP_mmprod_end;
+    cout << "\n\n Test : isoB_mmprod\n";
+    cout << "====================================================\n";
+    // 各種内積計算の時間測定結果を格納する
+    vector<double> time_mmprod;
+    vector<double> time_MP_mmprod;
+
+    // trial_num回だけテストを実施する
+    for (int i = 0; i < trial_num; i++)
+    {
+        // About isoA_mmprod
+        mmprod_start = chrono::system_clock::now();
+        isoB_mmprod(dim_A, dim_B, M1, M2);
+        mmprod_end = chrono::system_clock::now();
+
+        // About MP_isoA_mmprod
+        MP_mmprod_start = chrono::system_clock::now();
+        MP_isoB_mmprod(dim_A, dim_B, M1, M3);
+        MP_mmprod_end = chrono::system_clock::now();
+
+        // 時間計測結果をミリ秒に変換
+        auto mmprod_time_msec = chrono::duration_cast<chrono::milliseconds>(mmprod_end - mmprod_start).count();
+        auto MP_mmprod_msec = chrono::duration_cast<chrono::milliseconds>(MP_mmprod_end - MP_mmprod_start).count();
+
+        // 時間計測結果を各種配列に保存する
+        time_mmprod.push_back(mmprod_time_msec);
+        time_MP_mmprod.push_back(MP_mmprod_msec);
+
+        // 計算結果をファイル出力する
+        std::ofstream ofs_calc(PATH_result_of_calc, std::ios::app);
+        // fileをopenできる確認する
+        if (!ofs_calc)
+        {
+            printf("@test_isoB_mmprod error:: \"%s\" could not open.", PATH_result_of_calc.c_str());
+        }
+        else
+        {
+            if (mode == 'c') // csv出力
+            {
+                ofs_calc << "@isoB_mmprod's result @trial_num = " << i << endl;
+                ofs_calc << "--------------------------------------\n";
+                for (int n = 0; n < dim_A; n++)
+                {
+                    for (int m = 0; m < dim_B; m++)
+                    {
+                        ofs_calc << setprecision(16) << M2[n][m] << " , ";
+                    }
+                    ofs_calc << "\n";
+                }
+                ofs_calc << "--------------------------------------\n";
+
+                ofs_calc << "@MP_isoB_mmprod's result @trial_num = " << i << endl;
+                ofs_calc << "--------------------------------------\n";
+                for (int n = 0; n < dim_A; n++)
+                {
+                    for (int m = 0; m < dim_B; m++)
+                    {
+                        ofs_calc << setprecision(16) << M3[n][m] << " , ";
+                    }
+                    ofs_calc << "\n";
+                }
+                ofs_calc << "--------------------------------------\n";
+            }
+        }
+        ofs_calc.close();
+
+        // 行列M2,M3の初期化
+        for (int n = 0; n < dim_A; n++)
+        {
+            for (int m = 0; m < dim_B; m++)
+            {
+                M2[n][m] = M4[n][m];
+                M3[n][m] = M4[n][m];
+            }
+        }
+    }
+    // relase memory
+    for (int i = 0; i < dim_A; i++)
+        delete[] M1[i];
+    delete[] M1;
+
+    for (int i = 0; i < dim_B; i++)
+        delete[] M2[i];
+    delete[] M2;
+
+    for (int i = 0; i < dim_B; i++)
+        delete[] M3[i];
+    delete[] M3;
+
+    for (int i = 0; i < dim_B; i++)
+        delete[] M4[i];
+    delete[] M4;
+}
+
+void test_int_rise_mmprod(int trial_num, int dim_A, int dim_B, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
+{
+    // 行列計算の例として8site totalS^z = 1での(S_A^z , S_B^z) = (0,1)での計算を考える
+    random_device rand;
+    mt19937 mt(rand());
+    uniform_real_distribution<> rand1(0, 0.1);
+
+    // V1は6行4列の状態行列
+    double **V1 = new double *[6];
+    for (int i = 0; i < 6; i++)
+        V1[i] = new double[4];
+
+    // V2は4行6列の状態行列
+    double **V2 = new double *[4];
+    for (int i = 0; i < 4; i++)
+        V2[i] = new double[6];
+
+    // V3は4行6列の状態行列
+    double **V3 = new double *[4];
+    for (int i = 0; i < 4; i++)
+        V3[i] = new double[6];
+
+    for (int i = 0; i < 6; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            V1[i][j] = rand1(mt);
+        }
+    }
+
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 0; j < 6; j++)
+        {
+            V2[i][j] = 0.0;
+            V3[i][j] = 0.0;
+        }
+    }
+
+    // 昇降演算子の情報を記録するための配列のメモリ確保&要素代入
+    int *prow_ind_A = new int[3];
+    int *pcol_ind_A = new int[3];
+    int *prow_ind_B = new int[3];
+    int *pcol_ind_B = new int[3];
+
+    prow_ind_A[0] = 0;
+    prow_ind_A[1] = 1;
+    prow_ind_A[2] = 2;
+    pcol_ind_A[0] = 2;
+    pcol_ind_A[1] = 4;
+    pcol_ind_A[2] = 5;
+
+    prow_ind_B[0] = 1;
+    prow_ind_B[1] = 2;
+    prow_ind_B[2] = 3;
+    pcol_ind_B[0] = 0;
+    pcol_ind_B[1] = 1;
+    pcol_ind_B[2] = 2;
+
+    // 疎行列ｰ密行列積の実施と計算時間の測定を行う
+    chrono::system_clock::time_point mmprod_start, MP_mmprod_start, mmprod_end, MP_mmprod_end;
+    cout << "\n\n Test : int_rise_mmprod\n";
+    cout << "====================================================\n";
+    // 各種内積計算の時間測定結果を格納する
+    vector<double> time_mmprod;
+    vector<double> time_MP_mmprod;
+
+    // trial_num回だけテストを実施する
+    std::ofstream ofs_calc(PATH_result_of_calc);
+    for (int i = 0; i < trial_num; i++)
+    {
+        // About isoA_mmprod
+        mmprod_start = chrono::system_clock::now();
+        int_rise_mmprod(3, 3, prow_ind_A, pcol_ind_A, prow_ind_B, pcol_ind_B, V1, V2);
+        mmprod_end = chrono::system_clock::now();
+
+        // About MP_isoA_mmprod
+        MP_mmprod_start = chrono::system_clock::now();
+        MP_int_rise_mmprod(3, 3, prow_ind_A, pcol_ind_A, prow_ind_B, pcol_ind_B, V1, V3);
+        MP_mmprod_end = chrono::system_clock::now();
+
+        // 時間計測結果をミリ秒に変換
+        auto mmprod_time_msec = chrono::duration_cast<chrono::milliseconds>(mmprod_end - mmprod_start).count();
+        auto MP_mmprod_msec = chrono::duration_cast<chrono::milliseconds>(MP_mmprod_end - MP_mmprod_start).count();
+
+        // 時間計測結果を各種配列に保存する
+        time_mmprod.push_back(mmprod_time_msec);
+        time_MP_mmprod.push_back(MP_mmprod_msec);
+
+        // 計算結果をファイル出力する
+        // fileをopenできる確認する
+        if (!ofs_calc)
+        {
+            printf("@test_int_rise_mmprod error:: \"%s\" could not open.", PATH_result_of_calc.c_str());
+        }
+        else
+        {
+            if (mode == 'c') // csv出力
+            {
+                ofs_calc << "@int_rise_mmprod's result @trial_num = " << i << endl;
+                ofs_calc << "--------------------------------------\n";
+                for (int n = 0; n < 4; n++)
+                {
+                    for (int m = 0; m < 6; m++)
+                    {
+                        ofs_calc << setprecision(16) << V2[n][m] << " , ";
+                    }
+                    ofs_calc << "\n";
+                }
+                ofs_calc << "--------------------------------------\n";
+
+                ofs_calc << "@MP_int_rise_mmprod's result @trial_num = " << i << endl;
+                ofs_calc << "--------------------------------------\n";
+                for (int n = 0; n < 4; n++)
+                {
+                    for (int m = 0; m < 6; m++)
+                    {
+                        ofs_calc << setprecision(16) << V3[n][m] << " , ";
+                    }
+                    ofs_calc << "\n";
+                }
+                ofs_calc << "--------------------------------------\n";
+            }
+        }
+
+        // 行列M2,M3の初期化
+        for (int n = 0; n < 4; n++)
+        {
+            for (int m = 0; m < 6; m++)
+            {
+                V2[n][m] = 0.0;
+                V3[n][m] = 0.0;
+            }
+        }
+    }
+    ofs_calc.close();
+    // relase memory
+    for (int i = 0; i < 6; i++)
+        delete[] V1[i];
+    delete[] V1;
+
+    for (int i = 0; i < 4; i++)
+        delete[] V2[i];
+    delete[] V2;
+
+    for (int i = 0; i < 4; i++)
+        delete[] V3[i];
+    delete[] V3;
+
+    delete[] prow_ind_A;
+    delete[] pcol_ind_A;
+    delete[] prow_ind_B;
+    delete[] pcol_ind_B;
+};
+
+void test_int_dsmn_mmprod(int trial_num, int dim_A, int dim_B, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
+{
+    // 行列計算の例として8site totalS^z = 1での(S_A^z , S_B^z) = (0,1)での計算を考える
+    random_device rand;
+    mt19937 mt(rand());
+    uniform_real_distribution<> rand1(0, 0.1);
+
+    // V1は4行6列の状態行列
+    double **V1 = new double *[4];
+    for (int i = 0; i < 4; i++)
+        V1[i] = new double[6];
+
+    // V2は6行4列の状態行列
+    double **V2 = new double *[6];
+    for (int i = 0; i < 6; i++)
+        V2[i] = new double[4];
+
+    // V3は6行4列の状態行列
+    double **V3 = new double *[6];
+    for (int i = 0; i < 6; i++)
+        V3[i] = new double[4];
+
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 0; j < 6; j++)
+        {
+            V1[i][j] = rand1(mt);
+        }
+    }
+
+    for (int i = 0; i < 6; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            V2[i][j] = 0.0;
+            V3[i][j] = 0.0;
+        }
+    }
+
+    // 昇降演算子の情報を記録するための配列のメモリ確保&要素代入
+    int *mrow_ind_A = new int[3];
+    int *mcol_ind_A = new int[3];
+    int *mrow_ind_B = new int[3];
+    int *mcol_ind_B = new int[3];
+
+    mrow_ind_A[0] = 2;
+    mrow_ind_A[1] = 4;
+    mrow_ind_A[2] = 5;
+    mcol_ind_A[0] = 0;
+    mcol_ind_A[1] = 1;
+    mcol_ind_A[2] = 2;
+
+    mrow_ind_B[0] = 0;
+    mrow_ind_B[1] = 1;
+    mrow_ind_B[2] = 2;
+    mcol_ind_B[0] = 1;
+    mcol_ind_B[1] = 2;
+    mcol_ind_B[2] = 3;
+
+    // 疎行列ｰ密行列積の実施と計算時間の測定を行う
+    chrono::system_clock::time_point mmprod_start, MP_mmprod_start, mmprod_end, MP_mmprod_end;
+    cout << "\n\n Test : int_dsmn_mmprod\n";
+    cout << "====================================================\n";
+    // 各種内積計算の時間測定結果を格納する
+    vector<double> time_mmprod;
+    vector<double> time_MP_mmprod;
+
+    // trial_num回だけテストを実施する
+    std::ofstream ofs_calc(PATH_result_of_calc);
+    for (int i = 0; i < trial_num; i++)
+    {
+        // About isoA_mmprod
+        mmprod_start = chrono::system_clock::now();
+        int_dsmn_mmprod(3, 3, mrow_ind_A, mcol_ind_A, mrow_ind_B, mcol_ind_B, V1, V2);
+        mmprod_end = chrono::system_clock::now();
+
+        // About MP_isoA_mmprod
+        MP_mmprod_start = chrono::system_clock::now();
+        MP_int_dsmn_mmprod(3, 3, mrow_ind_A, mcol_ind_A, mrow_ind_B, mcol_ind_B, V1, V3);
+        MP_mmprod_end = chrono::system_clock::now();
+
+        // 時間計測結果をミリ秒に変換
+        auto mmprod_time_msec = chrono::duration_cast<chrono::milliseconds>(mmprod_end - mmprod_start).count();
+        auto MP_mmprod_msec = chrono::duration_cast<chrono::milliseconds>(MP_mmprod_end - MP_mmprod_start).count();
+
+        // 時間計測結果を各種配列に保存する
+        time_mmprod.push_back(mmprod_time_msec);
+        time_MP_mmprod.push_back(MP_mmprod_msec);
+
+        // 計算結果をファイル出力する
+        // fileをopenできる確認する
+        if (!ofs_calc)
+        {
+            printf("@test_int_dsmn_mmprod error:: \"%s\" could not open.", PATH_result_of_calc.c_str());
+        }
+        else
+        {
+            if (mode == 'c') // csv出力
+            {
+                ofs_calc << "@int_dsmn_mmprod's result @trial_num = " << i << endl;
+                ofs_calc << "--------------------------------------\n";
+                for (int n = 0; n < 6; n++)
+                {
+                    for (int m = 0; m < 4; m++)
+                    {
+                        ofs_calc << setprecision(16) << V2[n][m] << " , ";
+                    }
+                    ofs_calc << "\n";
+                }
+                ofs_calc << "--------------------------------------\n";
+
+                ofs_calc << "@MP_int_dsmn_mmprod's result @trial_num = " << i << endl;
+                ofs_calc << "--------------------------------------\n";
+                for (int n = 0; n < 6; n++)
+                {
+                    for (int m = 0; m < 4; m++)
+                    {
+                        ofs_calc << setprecision(16) << V3[n][m] << " , ";
+                    }
+                    ofs_calc << "\n";
+                }
+                ofs_calc << "--------------------------------------\n";
+            }
+        }
+
+        // 行列M2,M3の初期化
+        for (int n = 0; n < 6; n++)
+        {
+            for (int m = 0; m < 4; m++)
+            {
+                V2[n][m] = 0.0;
+                V3[n][m] = 0.0;
+            }
+        }
+    }
+    ofs_calc.close();
+    // relase memory
+    for (int i = 0; i < 4; i++)
+        delete[] V1[i];
+    delete[] V1;
+
+    for (int i = 0; i < 6; i++)
+        delete[] V2[i];
+    delete[] V2;
+
+    for (int i = 0; i < 6; i++)
+        delete[] V3[i];
+    delete[] V3;
+
+    delete[] mrow_ind_A;
+    delete[] mcol_ind_A;
+    delete[] mrow_ind_B;
+    delete[] mcol_ind_B;
+};
+
+void test_int_zz_mmprod(int trial_num, int dim_A, int dim_B, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
+{
+    // 行列計算の例として8site totalS^z = 1での(S_A^z , S_B^z) = (0,1)での計算を考える
+    random_device rand;
+    mt19937 mt(rand());
+    uniform_real_distribution<> rand1(0, 0.1);
+
+    // V1は6行4列の状態行列
+    double **V1 = new double *[6];
+    for (int i = 0; i < 6; i++)
+        V1[i] = new double[4];
+
+    // V2は6行4列の状態行列
+    double **V2 = new double *[6];
+    for (int i = 0; i < 6; i++)
+        V2[i] = new double[4];
+
+    // V3は6行4列の状態行列
+    double **V3 = new double *[6];
+    for (int i = 0; i < 6; i++)
+        V3[i] = new double[4];
+
+    for (int i = 0; i < 6; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            V1[i][j] = rand1(mt);
+            V2[i][j] = 0.0;
+            V3[i][j] = 0.0;
+        }
+    }
+
+    // 昇降演算子の情報を記録するための配列のメモリ確保&要素代入
+    int *sz_A = new int[6];
+    int *sz_B = new int[4];
+
+    for (int i = 0; i < 6; i++)
+        sz_A[i] = 1;
+
+    for (int i = 0; i < 4; i++)
+        sz_B[i] = 1;
+
+    // 疎行列ｰ密行列積の実施と計算時間の測定を行う
+    chrono::system_clock::time_point mmprod_start, MP_mmprod_start, mmprod_end, MP_mmprod_end;
+    cout << "\n\n Test : int_zz_mmprod\n";
+    cout << "====================================================\n";
+    // 各種内積計算の時間測定結果を格納する
+    vector<double> time_mmprod;
+    vector<double> time_MP_mmprod;
+
+    // trial_num回だけテストを実施する
+    std::ofstream ofs_calc(PATH_result_of_calc);
+    for (int i = 0; i < trial_num; i++)
+    {
+        // About isoA_mmprod
+        mmprod_start = chrono::system_clock::now();
+        int_zz_mmprod(6, 4, sz_A, sz_B, V1, V2);
+        mmprod_end = chrono::system_clock::now();
+
+        // About MP_isoA_mmprod
+        MP_mmprod_start = chrono::system_clock::now();
+        MP_int_zz_mmprod(6, 4, sz_A, sz_B, V1, V3);
+        MP_mmprod_end = chrono::system_clock::now();
+
+        // 時間計測結果をミリ秒に変換
+        auto mmprod_time_msec = chrono::duration_cast<chrono::milliseconds>(mmprod_end - mmprod_start).count();
+        auto MP_mmprod_msec = chrono::duration_cast<chrono::milliseconds>(MP_mmprod_end - MP_mmprod_start).count();
+
+        // 時間計測結果を各種配列に保存する
+        time_mmprod.push_back(mmprod_time_msec);
+        time_MP_mmprod.push_back(MP_mmprod_msec);
+
+        // 計算結果をファイル出力する
+        // fileをopenできる確認する
+        if (!ofs_calc)
+        {
+            printf("@test_int_zz_mmprod error:: \"%s\" could not open.", PATH_result_of_calc.c_str());
+        }
+        else
+        {
+            if (mode == 'c') // csv出力
+            {
+                ofs_calc << "@int_zz_mmprod's result @trial_num = " << i << endl;
+                ofs_calc << "--------------------------------------\n";
+                for (int n = 0; n < 6; n++)
+                {
+                    for (int m = 0; m < 4; m++)
+                    {
+                        ofs_calc << setprecision(16) << V2[n][m] << " , ";
+                    }
+                    ofs_calc << "\n";
+                }
+                ofs_calc << "--------------------------------------\n";
+
+                ofs_calc << "@MP_int_zz_mmprod's result @trial_num = " << i << endl;
+                ofs_calc << "--------------------------------------\n";
+                for (int n = 0; n < 6; n++)
+                {
+                    for (int m = 0; m < 4; m++)
+                    {
+                        ofs_calc << setprecision(16) << V3[n][m] << " , ";
+                    }
+                    ofs_calc << "\n";
+                }
+                ofs_calc << "--------------------------------------\n";
+            }
+        }
+
+        // 行列M2,M3の初期化
+        for (int n = 0; n < 6; n++)
+        {
+            for (int m = 0; m < 4; m++)
+            {
+                V2[n][m] = 0.0;
+                V3[n][m] = 0.0;
+            }
+        }
+    }
+    ofs_calc.close();
+    // relase memory
+    for (int i = 0; i < 6; i++)
+        delete[] V1[i];
+    delete[] V1;
+
+    for (int i = 0; i < 6; i++)
+        delete[] V2[i];
+    delete[] V2;
+
+    for (int i = 0; i < 6; i++)
+        delete[] V3[i];
+    delete[] V3;
+
+    delete[] sz_A;
+    delete[] sz_B;
+};

@@ -19,4 +19,9 @@ void test_mm_dnrm2(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
 void test_mm_dscal(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode = 'c');
 void test_mm_daxpy(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode = 'c');
 void test_mm_sdz(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode = 'c');
+void test_isoA_mmprod(int trial_num, int dim_A, int dim_B, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode = 'c');
+void test_isoB_mmprod(int trial_num, int dim_A, int dim_B, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode = 'c');
+void test_int_rise_mmprod(int trial_num, int dim_A, int dim_B, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode = 'c');
+void test_int_dsmn_mmprod(int trial_num, int dim_A, int dim_B, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode = 'c');
+void test_int_zz_mmprod(int trial_num, int dim_A, int dim_B, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode = 'c');
 #endif

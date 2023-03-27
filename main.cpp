@@ -14,66 +14,6 @@
 
 using namespace std;
 
-void isoB_mmprod()
-{
-    int mat_dim = 4;
-    vector<int> row_ptr = {0, 1, 3, 5, 6};
-    vector<int> col = {0, 1, 2, 1, 2, 3};
-    vector<double> val = {1, 2, 3, 4, 5, 6};
-    vector<vector<double>> M0(mat_dim, vector<double>(mat_dim, 1.0));
-    vector<vector<double>> M1(mat_dim, vector<double>(mat_dim, 0.0));
-
-    M0[1][1] = 2.;
-    M0[1][2] = 2.;
-    M0[2][1] = 3.;
-    M0[2][2] = 3.;
-
-    for (int i = 0; i < mat_dim; i++)
-    {
-        for (int j = 0; j < mat_dim; j++)
-        {
-            for (int k = row_ptr[j]; k < row_ptr[j + 1]; k++)
-            {
-                M1[i][j] += M0[i][col[k]] * val[k];
-            }
-        }
-    }
-    cout << "M1 = \n";
-    print_mat(mat_dim, M1);
-}
-
-void mmprod()
-{
-    int dim_A = 4;
-    int dim_B = 3;
-    vector<vector<double>> A(dim_A, vector<double>(dim_A, 0.0));
-    vector<vector<double>> B(dim_B, vector<double>(dim_B, 0.0));
-    vector<vector<double>> psi0(dim_A, vector<double>(dim_B, 1.0));
-    vector<vector<double>> psi1(dim_A, vector<double>(dim_B, 0.0));
-
-    A[0][1] = 2.0;
-    A[1][3] = 2.0;
-
-    B[0][2] = 2.0;
-    B[2][1] = 2.0;
-
-    for (int i = 0; i < dim_A; i++)
-    {
-        for (int j = 0; j < dim_B; j++)
-        {
-            for (int k = 0; k < dim_A; k++)
-            {
-                for (int l = 0; l < dim_B; l++)
-                {
-                    psi1[i][j] += A[i][k] * psi0[k][l] * B[l][j];
-                }
-            }
-        }
-    }
-    // cout << "psi1 = \n";
-    // print_mat(dim_A, dim_B, psi1);
-}
-
 int main()
 {
     omp_set_num_threads(NUM_THREADS); //[comment : ここでsetするのではなく、ターミナルで一度設定するだけで良いらしい]
@@ -122,11 +62,21 @@ int main()
     /*-----------------------------------------------------------*/
 
     /*----------------Test6 : sdzの計算の確認------------------*/
-    cout << "\n\n Test6 : mm_sdz()\n";
-    cout << "====================================================\n";
-    test_mm_sdz(10, mat_dim, "./test_sdz/result_sdz.csv", "./test_sdz/time_sdz.csv");
-    cout << "====================================================\n";
+    // cout << "\n\n Test6 : mm_sdz()\n";
+    // cout << "====================================================\n";
+    // test_mm_sdz(10, mat_dim, "./test_sdz/result_sdz.csv", "./test_sdz/time_sdz.csv");
+    // cout << "====================================================\n";
     /*-----------------------------------------------------------*/
+
+    /*---------------Test7 : 疎行列-行列積計算の確認-------------*/
+    //[Memo]fileへのデータの書き込みは追記モードで行っているので、テストを行うごとにファイルを削除する必要あり
+    // test_isoA_mmprod(10, 4, 4, "./test_isoA_mmprod/result_isoA_mmprod.csv", "./test_isoA_mmprod/time_isoA_mmprod.csv");
+    // test_isoB_mmprod(10, 4, 4, "./test_isoB_mmprod/result_isoB_mmprod.csv", "./test_isoB_mmprod/time_isoB_mmprod.csv");
+
+    /*---------------Test8 : S^+ V S^+行列積計算の確認-------------*/
+    test_int_rise_mmprod(10, 4, 4, "./test_rise_mmprod/result_rise_mmprod.csv", "./test_rise_mmprod/time_rise_mmprod.csv");
+    test_int_dsmn_mmprod(10, 4, 4, "./test_dsmn_mmprod/result_dsmn_mmprod.csv", "./test_dsmn_mmprod/time_dsmn_mmprod.csv");
+    test_int_zz_mmprod(10, 4, 4, "./test_zz_mmprod/result_zz_mmprod.csv", "./test_zz_mmprod/time_zz_mmprod.csv");
 
     // /*-----------状態ベクトルのメモリ確保&random初期化-----------*/
     // double *u1 = new double[state_num];

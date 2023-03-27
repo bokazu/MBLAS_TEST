@@ -19,6 +19,11 @@ void print_mat(int mat_dim, double **M);
 void print_vec(int mat_dim, double *vec);
 void sdz(int dim, double *vec);
 void mm_sdz(int mat_dim, double **M);
+void isoA_mmprod(int dim_A, int dim_B, double **u_i, double **u_j);
+void isoB_mmprod(int dim_A, int dim_B, double **u_i, double **u_j);
+void int_rise_mmprod(int nnz_pA, int nnz_pB, int *prow_ind_A, int *pcol_ind_A, int *prow_ind_B, int *pcol_ind_B, double **V0, double **V1_dic1);
+void int_dsmn_mmprod(int nnz_mA, int nnz_mB, int *mrow_ind_A, int *mcol_ind_A, int *mrow_ind_B, int *mcol_ind_B, double **V0, double **V1_inc1);
+void int_zz_mmprod(int dim_A, int dim_B, int *sz_A, int *sz_B, double **V0, double **V1);
 /*--------------------------------------------------*/
 
 /*------------------OpenMP利用version(schedulingは非実施)---------------*/
@@ -31,6 +36,11 @@ void MP_mv_copy(int mat_dim, double *vec, double **M);
 void MP_sdz(int dim, double *vec);
 void MP_mm_sdz(int mat_dim, double **M);
 void MP_schedule_mm_sdz(int mat_dim, double **M);
+void MP_isoA_mmprod(int dim_A, int dim_B, double **u_i, double **u_j);
+void MP_isoB_mmprod(int dim_A, int dim_B, double **u_i, double **u_j);
+void MP_int_rise_mmprod(int nnz_pA, int nnz_pB, int *prow_ind_A, int *pcol_ind_A, int *prow_ind_B, int *pcol_ind_B, double **V0, double **V1_dic1);
+void MP_int_dsmn_mmprod(const int nnz_mA, const int nnz_mB, int *mrow_ind_A, int *mcol_ind_A, int *mrow_ind_B, int *mcol_ind_B, double **V0, double **V1_inc1);
+void MP_int_zz_mmprod(int dim_A, int dim_B, int *sz_A, int *sz_B, double **V0, double **V1);
 /*----------------------------------------------------------------------*/
 
 /*---------------OpenMP利用かつschedulingを実施---------------*/
