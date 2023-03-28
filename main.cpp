@@ -23,48 +23,49 @@ int main()
     // mmprod();
     // isoB_mmprod();
     int state_num = 16;
-    int mat_dim = 50000;
+    int dim_A = 50000;
+    int dim_B = 50000;
     int daxpy_mat_dim = 10000; // daxpyのテストコードは他と比べて消費メモリ量が大きいので別途変数を用意した
 
     /*--------------------Test1--------------------*/
     // cout << "\n\n Test1 : mm_dcopy()\n";
     // cout << "====================================================\n";
-    // test_mm_dcopy(10, mat_dim, "./test_dcopy/result_dcopy.csv", "./test_dcopy/time_dcopy.csv");
+    // test_mm_dcopy(10, dim_A, dim_B,"./test_dcopy/result_dcopy.csv", "./test_dcopy/time_dcopy.csv");
     // cout << "====================================================\n";
     /*---------------------------------------------*/
 
     /*----------------Test2 : M1とM2の内積計算を行う------------*/
     // cout << "\n\n Test2 : mm_ddot()\n";
     // cout << "====================================================\n";
-    // test_mm_ddot(10, mat_dim, "./test_ddot/result_ddot.csv", "./test_ddot/time_ddot.csv");
+    // test_mm_ddot(10, dim_A, dim_B ,"./test_ddot/result_ddot.csv", "./test_ddot/time_ddot.csv");
     // cout << "====================================================\n";
     /*-----------------------------------------------------------*/
 
     /*----------------Test3 : M1とM2のノルム計算を行う------------*/
     // cout << "\n\n Test3 : mm_dnrm2()\n";
     // cout << "====================================================\n";
-    // test_mm_dnrm2(10, mat_dim, "./test_dnrm2/result_dnrm2.csv", "./test_dnrm2/time_dnrm2.csv");
+    // test_mm_dnrm2(10, dim_A, dim_B,"./test_dnrm2/result_dnrm2.csv", "./test_dnrm2/time_dnrm2.csv");
     // cout << "====================================================\n";
     /*-----------------------------------------------------------*/
 
     /*----------------Test4 : dscalの計算の確認------------------*/
     // cout << "\n\n Test4 : mm_dscal()\n";
     // cout << "====================================================\n";
-    // test_mm_dscal(10, mat_dim, "./test_dscal/result_dscal.csv", "./test_dscal/time_dscal.csv");
+    // test_mm_dscal(10, dim_A, dim_B,"./test_dscal/result_dscal.csv", "./test_dscal/time_dscal.csv");
     // cout << "====================================================\n";
     /*-----------------------------------------------------------*/
 
     /*----------------Test5 : daxpyの計算の確認------------------*/
     // cout << "\n\n Test5 : mm_daxpy()\n";
     // cout << "====================================================\n";
-    // test_mm_daxpy(10, daxpy_mat_dim, "./test_daxpy/result_daxpy.csv", "./test_daxpy/time_daxpy.csv");
+    // test_mm_daxpy(10, daxpy_mat_dim, daxpy_mat_dim,"./test_daxpy/result_daxpy.csv", "./test_daxpy/time_daxpy.csv");
     // cout << "====================================================\n";
     /*-----------------------------------------------------------*/
 
     /*----------------Test6 : sdzの計算の確認------------------*/
     // cout << "\n\n Test6 : mm_sdz()\n";
     // cout << "====================================================\n";
-    // test_mm_sdz(10, mat_dim, "./test_sdz/result_sdz.csv", "./test_sdz/time_sdz.csv");
+    // test_mm_sdz(10, dim_A, dim_B,"./test_sdz/result_sdz.csv", "./test_sdz/time_sdz.csv");
     // cout << "====================================================\n";
     /*-----------------------------------------------------------*/
 
@@ -74,9 +75,15 @@ int main()
     // test_isoB_mmprod(10, 4, 4, "./test_isoB_mmprod/result_isoB_mmprod.csv", "./test_isoB_mmprod/time_isoB_mmprod.csv");
 
     /*---------------Test8 : S^+ V S^+行列積計算の確認-------------*/
-    test_int_rise_mmprod(10, 4, 4, "./test_rise_mmprod/result_rise_mmprod.csv", "./test_rise_mmprod/time_rise_mmprod.csv");
-    test_int_dsmn_mmprod(10, 4, 4, "./test_dsmn_mmprod/result_dsmn_mmprod.csv", "./test_dsmn_mmprod/time_dsmn_mmprod.csv");
-    test_int_zz_mmprod(10, 4, 4, "./test_zz_mmprod/result_zz_mmprod.csv", "./test_zz_mmprod/time_zz_mmprod.csv");
+    // test_int_rise_mmprod(10, 4, 4, "./test_rise_mmprod/result_rise_mmprod.csv", "./test_rise_mmprod/time_rise_mmprod.csv");
+    // test_int_dsmn_mmprod(10, 4, 4, "./test_dsmn_mmprod/result_dsmn_mmprod.csv", "./test_dsmn_mmprod/time_dsmn_mmprod.csv");
+    // test_int_zz_mmprod(10, 4, 4, "./test_zz_mmprod/result_zz_mmprod.csv", "./test_zz_mmprod/time_zz_mmprod.csv");
+
+    /*---------------Test8 : Lanczos法における三重対角行列の主対角成分-------------*/
+    // test_calc_alpha(10, dim_A, dim_B, "./test_calc_alpha/result_calc_alpha.csv", "./test_calc_alpha/time_calc_alpha.csv");
+
+    /*---------------Test8 : Lanczos法における三重対角行列の次対角成分-------------*/
+    test_calc_beta_even(10, dim_A, dim_B, "./test_calc_beta/result_calc_beta.csv", "./test_calc_beta/time_calc_beta.csv");
 
     // /*-----------状態ベクトルのメモリ確保&random初期化-----------*/
     // double *u1 = new double[state_num];

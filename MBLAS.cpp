@@ -4,12 +4,12 @@
 using namespace std;
 
 // mm_ddot : 状態ベクトルの内積計算の状態行列version
-double mm_ddot(int mat_dim, double **M1, double **M2)
+double mm_ddot(int row_dim, int col_dim, double **M1, double **M2)
 {
     double val = 0.;
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             val += M1[i][j] * M2[i][j];
         }
@@ -18,11 +18,11 @@ double mm_ddot(int mat_dim, double **M1, double **M2)
 }
 
 // mm_dcopy : 状態行列のコピー
-void mm_dcopy(int mat_dim, double **M1, double **M2)
+void mm_dcopy(int row_dim, int col_dim, double **M1, double **M2)
 {
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             M2[i][j] = M1[i][j];
         }
@@ -30,11 +30,11 @@ void mm_dcopy(int mat_dim, double **M1, double **M2)
 };
 
 // mm_dscal M1 = α*M1
-void mm_dscal(int mat_dim, double alpha, double **M1)
+void mm_dscal(int row_dim, int col_dim, double alpha, double **M1)
 {
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             M1[i][j] *= alpha;
         }
@@ -42,23 +42,23 @@ void mm_dscal(int mat_dim, double alpha, double **M1)
 }
 
 // mm_daxpy M2 += α*M1
-void mm_daxpy(int mat_dim, double alpha, double **M1, double **M2)
+void mm_daxpy(int row_dim, int col_dim, double alpha, double **M1, double **M2)
 {
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             M2[i][j] += alpha * M1[i][j];
         }
     }
 }
 
-double mm_dnrm2(int mat_dim, double **M)
+double mm_dnrm2(int row_dim, int col_dim, double **M)
 {
     double val = 0.;
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             val += M[i][j] * M[i][j];
         }
@@ -67,10 +67,10 @@ double mm_dnrm2(int mat_dim, double **M)
 }
 
 // 状態行列の規格化
-void mm_sdz(int mat_dim, double **M)
+void mm_sdz(int row_dim, int col_dim, double **M)
 {
-    double a = 1. / mm_dnrm2(mat_dim, M);
-    mm_dscal(mat_dim, a, M);
+    double a = 1. / mm_dnrm2(row_dim, col_dim, M);
+    mm_dscal(row_dim, col_dim, a, M);
 };
 
 // 状態ベクトルの成分を状態行列にコピーする M = vec
@@ -199,14 +199,14 @@ void print_vec(int mat_dim, double *vec)
 
 /*---------------OpenMPを利用した並列処理を施したversion---------------*/
 // mm_ddot : 状態ベクトルの内積計算の状態行列version
-double MP_mm_ddot(int mat_dim, double **M1, double **M2)
+double MP_mm_ddot(int row_dim, int col_dim, double **M1, double **M2)
 {
     double val = 0.;
 #pragma omp parallel for reduction(+ \
                                    : val)
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             val += M1[i][j] * M2[i][j];
         }
@@ -214,14 +214,14 @@ double MP_mm_ddot(int mat_dim, double **M1, double **M2)
     return val;
 }
 
-double MP_schedule_mm_ddot(int mat_dim, double **M1, double **M2)
+double MP_schedule_mm_ddot(int row_dim, int col_dim, double **M1, double **M2)
 {
     double val = 0.;
 #pragma omp parallel for schedule(runtime) reduction(+ \
                                                      : val)
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             val += M1[i][j] * M2[i][j];
         }
@@ -229,38 +229,38 @@ double MP_schedule_mm_ddot(int mat_dim, double **M1, double **M2)
     return val;
 }
 
-void MP_mm_dcopy(int mat_dim, double **M1, double **M2)
+void MP_mm_dcopy(int row_dim, int col_dim, double **M1, double **M2)
 {
 #pragma omp parallel for
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             M2[i][j] = M1[i][j];
         }
     }
 };
 
-void MP_schedule_mm_dcopy(int mat_dim, double **M1, double **M2)
+void MP_schedule_mm_dcopy(int row_dim, int col_dim, double **M1, double **M2)
 {
 #pragma omp parallel for schedule(runtime)
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             M2[i][j] = M1[i][j];
         }
     }
 }
 
-double MP_mm_dnrm2(int mat_dim, double **M1)
+double MP_mm_dnrm2(int row_dim, int col_dim, double **M1)
 {
     double val = 0.;
 #pragma omp parallel for reduction(+ \
                                    : val)
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             val += M1[i][j] * M1[i][j];
         }
@@ -268,14 +268,14 @@ double MP_mm_dnrm2(int mat_dim, double **M1)
     return sqrt(val);
 }
 
-double MP_schedule_mm_dnrm2(int mat_dim, double **M)
+double MP_schedule_mm_dnrm2(int row_dim, int col_dim, double **M)
 {
     double val = 0.;
 #pragma omp parallel for schedule(runtime) reduction(+ \
                                                      : val)
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             val += M[i][j] * M[i][j];
         }
@@ -284,24 +284,24 @@ double MP_schedule_mm_dnrm2(int mat_dim, double **M)
 }
 
 // mm_dscal M1 = α*M1
-void MP_mm_dscal(int mat_dim, double alpha, double **M1)
+void MP_mm_dscal(int row_dim, int col_dim, double alpha, double **M1)
 {
 #pragma omp parallel for
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             M1[i][j] *= alpha;
         }
     }
 }
 
-void MP_schedule_mm_dscal(int mat_dim, double alpha, double **M1)
+void MP_schedule_mm_dscal(int row_dim, int col_dim, double alpha, double **M1)
 {
 #pragma omp parallel for schedule(runtime)
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             M1[i][j] *= alpha;
         }
@@ -309,41 +309,41 @@ void MP_schedule_mm_dscal(int mat_dim, double alpha, double **M1)
 }
 
 // mm_daxpy M2 += α*M1
-void MP_mm_daxpy(int mat_dim, double alpha, double **M1, double **M2)
+void MP_mm_daxpy(int row_dim, int col_dim, double alpha, double **M1, double **M2)
 {
     int j;
 #pragma omp parallel for private(j)
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (j = 0; j < mat_dim; j++)
+        for (j = 0; j < col_dim; j++)
         {
             M2[i][j] += alpha * M1[i][j];
         }
     }
 }
 
-void MP_schedule_mm_daxpy(int mat_dim, double alpha, double **M1, double **M2)
+void MP_schedule_mm_daxpy(int row_dim, int col_dim, double alpha, double **M1, double **M2)
 {
 #pragma omp parallel for schedule(runtime)
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             M2[i][j] += alpha * M1[i][j];
         }
     }
 }
 
-void MP_mm_sdz(int mat_dim, double **M)
+void MP_mm_sdz(int row_dim, int col_dim, double **M)
 {
-    double a = 1. / MP_mm_dnrm2(mat_dim, M);
-    MP_mm_dscal(mat_dim, a, M);
+    double a = 1. / MP_mm_dnrm2(row_dim, col_dim, M);
+    MP_mm_dscal(row_dim, col_dim, a, M);
 };
 
-void MP_schedule_mm_sdz(int mat_dim, double **M)
+void MP_schedule_mm_sdz(int row_dim, int col_dim, double **M)
 {
-    double a = 1. / MP_schedule_mm_dnrm2(mat_dim, M);
-    MP_schedule_mm_dscal(mat_dim, a, M);
+    double a = 1. / MP_schedule_mm_dnrm2(row_dim, col_dim, M);
+    MP_schedule_mm_dscal(row_dim, col_dim, a, M);
 };
 
 /*[Memo]並列化コードのテストを行うために用意した関数。実際のHamiltonian行列対角化コードとは実装が異なることに注意*/
@@ -614,3 +614,155 @@ void MP_int_zz_mmprod(int dim_A, int dim_B, int *sz_A, int *sz_B, double **V0, d
         }
     }
 };
+
+// testを行う際はls < 10とする
+void calc_alpha(const int ls, const int bm_A_size, const int bm_B_size, double *alpha, double **V0, double **V1)
+{
+    int pair_num = 5;
+
+    for (int No = 0; No < pair_num; No++)
+        alpha[ls] += mm_ddot(bm_A_size, bm_B_size, V1, V0);
+}
+
+void MP_calc_alpha(const int ls, const int bm_A_size, const int bm_B_size, double *alpha, double **V0, double **V1)
+{
+    int pair_num = 5;
+
+    double tmp = 0.;
+#pragma omp parallel for reduction(+ \
+                                   : tmp)
+    for (int No = 0; No < pair_num; No++)
+    {
+        tmp += MP_mm_ddot(bm_A_size, bm_B_size, V1, V0);
+    }
+    alpha[ls] = tmp; //[Memo] alpha[ls] += tmpのほうがいいかな？
+}
+
+// testを行う際はls < 10, tri_mat_dim = 10とする
+void calc_beta_odd_step(const int tri_mat_dim, const int ls, double *alpha, double *beta, double **V1, double **V0)
+{
+    int pair_num = 5;
+    int bm_A_size;
+    int bm_B_size;
+
+    // 並列化を意識してloop中のif文を除外したコード
+    if (ls != tri_mat_dim - 1)
+    {
+        for (int No = 0; No < pair_num; No++)
+        {
+            mm_daxpy(-alpha[ls], bm_A_size, bm_B_size, V1, V0);
+            beta[ls] += mm_ddot(bm_A_size, bm_B_size, V0, V0);
+        }
+        beta[ls] = sqrt(beta[ls]);
+    }
+    else
+    {
+        for (int No = 0; No < pair_num; No++)
+        {
+            mm_daxpy(-alpha[ls], bm_A_size, bm_B_size, V1, V0);
+        }
+    }
+
+    // 修正前のコード
+    //  for (int No = 0; No < pair_num; No++)
+    //  {
+    //      mm_daxpy(-alpha[ls], bm_A_size, bm_B_size, V1, V0);
+    //      if (ls != tri_mat_dim - 1)
+    //          beta[ls] += mm_ddot(bm_A_size, bm_B_size, V0, V0);
+    //  }
+    //  if (ls != tri_mat_dim - 1)
+    //  {
+    //      beta[ls] = sqrt(beta[ls]);
+    //  }
+}
+
+void MP_calc_beta_odd_step(const int tri_mat_dim, const int ls, double *alpha, double *beta, double **V1, double **V0)
+{
+    int pair_num = 5;
+    int bm_A_size;
+    int bm_B_size;
+
+    double tmp = 0;
+    // 並列化を意識してloop中のif文を除外したコード
+    if (ls != tri_mat_dim - 1)
+    {
+#pragma omp parallel for reduction(+ \
+                                   : tmp)
+        for (int No = 0; No < pair_num; No++)
+        {
+            MP_mm_daxpy(-alpha[ls], bm_A_size, bm_B_size, V1, V0);
+            tmp += MP_mm_ddot(bm_A_size, bm_B_size, V0, V0);
+        }
+        beta[ls] = sqrt(tmp);
+    }
+    else
+    {
+#pragma omp parallel for
+        for (int No = 0; No < pair_num; No++)
+        {
+            MP_mm_daxpy(-alpha[ls], bm_A_size, bm_B_size, V1, V0);
+        }
+    }
+}
+
+void calc_beta_even_step(const int tri_mat_dim, const int ls, double *alpha, double *beta, double **V0, double **V1)
+{
+    int pair_num = 5;
+    int bm_A_size = 50000;
+    int bm_B_size = 50000;
+
+    if (ls != tri_mat_dim - 1)
+    {
+        for (int No = 0; No < pair_num; No++)
+        {
+            mm_daxpy(-alpha[ls], bm_A_size, bm_B_size, V0, V1);
+            beta[ls] += mm_ddot(bm_A_size, bm_B_size, V1, V1);
+        }
+        beta[ls] = sqrt(beta[ls]);
+    }
+    else
+    {
+        for (int No = 0; No < pair_num; No++)
+        {
+            mm_daxpy(-alpha[ls], bm_A_size, bm_B_size, V0, V1);
+        }
+    }
+
+    // for (int No = 0; No < pair_num; No++)
+    // {
+    //     mm_daxpy(-alpha[ls], bm_A_size, bm_B_size, V0, V1);
+    //     if (ls != tri_mat_dim - 1)
+    //         beta[ls] += mm_ddot(bm_A_size, bm_B_size, V1, V1);
+    // }
+    // if (ls != tri_mat_dim - 1)
+    // {
+    //     beta[ls] = sqrt(beta[ls]);
+    // }
+}
+
+void MP_calc_beta_even_step(const int tri_mat_dim, const int ls, double *alpha, double *beta, double **V0, double **V1)
+{
+    int pair_num = 5;
+    int bm_A_size = 50000;
+    int bm_B_size = 50000;
+    double tmp = 0.;
+    if (ls != tri_mat_dim - 1)
+    {
+#pragma omp parallel for reduction(+ \
+                                   : tmp)
+        for (int No = 0; No < pair_num; No++)
+        {
+            mm_daxpy(-alpha[ls], bm_A_size, bm_B_size, V0, V1);
+            tmp += mm_ddot(bm_A_size, bm_B_size, V1, V1);
+        }
+        beta[ls] = sqrt(tmp);
+    }
+    else
+    {
+#pragma omp parallel for
+        for (int No = 0; No < pair_num; No++)
+        {
+            mm_daxpy(-alpha[ls], bm_A_size, bm_B_size, V0, V1);
+        }
+    }
+}

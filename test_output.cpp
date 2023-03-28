@@ -2,7 +2,7 @@
 
 using namespace std;
 
-void test_mm_ddot(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
+void test_mm_ddot(int trial_num, int row_dim, int col_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
 {
     // 初期状態行列の用意
     random_device rand;
@@ -10,17 +10,17 @@ void test_mm_ddot(int trial_num, int mat_dim, std::string PATH_result_of_calc, s
     uniform_real_distribution<> rand1(0, 0.001);
     uniform_real_distribution<> rand2(0, 0.001);
 
-    double **M1 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M1[i] = new double[mat_dim];
+    double **M1 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M1[i] = new double[col_dim];
 
-    double **M2 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M2[i] = new double[mat_dim];
+    double **M2 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M2[i] = new double[col_dim];
 
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             M1[i][j] = rand1(mt);
             M2[i][j] = rand2(mt);
@@ -45,15 +45,15 @@ void test_mm_ddot(int trial_num, int mat_dim, std::string PATH_result_of_calc, s
     {
         // About mm_ddot
         mm_ddot_start = chrono::system_clock::now();
-        double mat_ddot = mm_ddot(mat_dim, M1, M2);
+        double mat_ddot = mm_ddot(row_dim, col_dim, M1, M2);
         mm_ddot_end = chrono::system_clock::now();
         // About MP_mm_ddot
         MP_mm_ddot_start = chrono::system_clock::now();
-        double MP_mat_ddot = MP_mm_ddot(mat_dim, M1, M2);
+        double MP_mat_ddot = MP_mm_ddot(row_dim, col_dim, M1, M2);
         MP_mm_ddot_end = chrono::system_clock::now();
         // About MP_schedule_mm_ddot
         MP_schedule_mm_ddot_start = chrono::system_clock::now();
-        double MP_schedule_mat_ddot = MP_schedule_mm_ddot(mat_dim, M1, M2);
+        double MP_schedule_mat_ddot = MP_schedule_mm_ddot(row_dim, col_dim, M1, M2);
         MP_schedule_mm_ddot_end = chrono::system_clock::now();
 
         // 時間計測結果をミリ秒に変換
@@ -128,33 +128,33 @@ void test_mm_ddot(int trial_num, int mat_dim, std::string PATH_result_of_calc, s
     ofs_time.close();
 
     /*---------------------- -メモリの開放-----------------------*/
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
         delete[] M1[i];
     delete[] M1;
 
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
         delete[] M2[i];
     delete[] M2;
 };
 
-void test_mm_dcopy(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
+void test_mm_dcopy(int trial_num, int row_dim, int col_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
 {
     // 初期状態行列の用意
     random_device rand;
     mt19937 mt(rand());
     uniform_real_distribution<> rand1(-0.5, 0.5);
 
-    double **M1 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M1[i] = new double[mat_dim];
+    double **M1 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M1[i] = new double[col_dim];
 
-    double **M2 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M2[i] = new double[mat_dim];
+    double **M2 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M2[i] = new double[col_dim];
 
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             M1[i][j] = rand1(mt);
             M2[i][j] = 0.;
@@ -179,13 +179,13 @@ void test_mm_dcopy(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
     {
         // About mm_dcopy
         mm_dcopy_start = chrono::system_clock::now();
-        mm_dcopy(mat_dim, M1, M2);
+        mm_dcopy(row_dim, col_dim, M1, M2);
         mm_dcopy_end = chrono::system_clock::now();
 
         // 正しくコピーを行うことができているかの確認
-        for (int i = 0; i < mat_dim; i++)
+        for (int i = 0; i < row_dim; i++)
         {
-            for (int j = 0; j < mat_dim; j++)
+            for (int j = 0; j < col_dim; j++)
             {
                 if (M1[i][j] != M2[i][j])
                     is_ok_mm_dcopy = false;
@@ -193,9 +193,9 @@ void test_mm_dcopy(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
         }
 // 行列M2の初期化
 #pragma omp parallel for
-        for (int i = 0; i < mat_dim; i++)
+        for (int i = 0; i < row_dim; i++)
         {
-            for (int j = 0; j < mat_dim; j++)
+            for (int j = 0; j < col_dim; j++)
             {
                 M2[i][j] = 0.0;
             }
@@ -204,13 +204,13 @@ void test_mm_dcopy(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
 
         //  About MP_mm_dcopy
         MP_mm_dcopy_start = chrono::system_clock::now();
-        MP_mm_dcopy(mat_dim, M1, M2);
+        MP_mm_dcopy(row_dim, col_dim, M1, M2);
         MP_mm_dcopy_end = chrono::system_clock::now();
 
         // 正しくコピーを行うことができているかの確認
-        for (int i = 0; i < mat_dim; i++)
+        for (int i = 0; i < row_dim; i++)
         {
-            for (int j = 0; j < mat_dim; j++)
+            for (int j = 0; j < col_dim; j++)
             {
                 if (M1[i][j] != M2[i][j])
                     is_ok_MP_mm_dcopy = false;
@@ -218,22 +218,22 @@ void test_mm_dcopy(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
         }
         // 行列M2の初期化
 #pragma omp parallel for
-        for (int i = 0; i < mat_dim; i++)
+        for (int i = 0; i < row_dim; i++)
         {
-            for (int j = 0; j < mat_dim; j++)
+            for (int j = 0; j < col_dim; j++)
             {
                 M2[i][j] = 0.0;
             }
         }
         // About MP_schedule_mm_dcopy
         MP_schedule_mm_dcopy_start = chrono::system_clock::now();
-        MP_schedule_mm_dcopy(mat_dim, M1, M2);
+        MP_schedule_mm_dcopy(row_dim, col_dim, M1, M2);
         MP_schedule_mm_dcopy_end = chrono::system_clock::now();
 
         // 正しくコピーを行うことができているかの確認
-        for (int i = 0; i < mat_dim; i++)
+        for (int i = 0; i < row_dim; i++)
         {
-            for (int j = 0; j < mat_dim; j++)
+            for (int j = 0; j < col_dim; j++)
             {
                 if (M1[i][j] != M2[i][j])
                     is_ok_MP_schedule_mm_dcopy = false;
@@ -344,16 +344,16 @@ void test_mm_dcopy(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
     ofs_time.close();
 
     /*---------------------- -メモリの開放-----------------------*/
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
         delete[] M1[i];
     delete[] M1;
 
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < col_dim; i++)
         delete[] M2[i];
     delete[] M2;
 };
 
-void test_mm_dnrm2(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
+void test_mm_dnrm2(int trial_num, int row_dim, int col_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
 {
     // 初期状態行列の用意
     random_device rand;
@@ -361,14 +361,14 @@ void test_mm_dnrm2(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
     uniform_real_distribution<> rand1(0, 0.001);
     uniform_real_distribution<> rand2(0, 0.001);
 
-    double **M1 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M1[i] = new double[mat_dim];
+    double **M1 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M1[i] = new double[col_dim];
 
 #pragma omp parallel for
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             M1[i][j] = rand1(mt);
         }
@@ -392,15 +392,15 @@ void test_mm_dnrm2(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
     {
         // About mm_dnrm2
         mm_dnrm2_start = chrono::system_clock::now();
-        double mat_dnrm2 = mm_dnrm2(mat_dim, M1);
+        double mat_dnrm2 = mm_dnrm2(row_dim, col_dim, M1);
         mm_dnrm2_end = chrono::system_clock::now();
         // About MP_mm_dnrm2
         MP_mm_dnrm2_start = chrono::system_clock::now();
-        double MP_mat_dnrm2 = MP_mm_dnrm2(mat_dim, M1);
+        double MP_mat_dnrm2 = MP_mm_dnrm2(row_dim, col_dim, M1);
         MP_mm_dnrm2_end = chrono::system_clock::now();
         // About MP_schedule_mm_dnrm2
         MP_schedule_mm_dnrm2_start = chrono::system_clock::now();
-        double MP_schedule_mat_dnrm2 = MP_schedule_mm_dnrm2(mat_dim, M1);
+        double MP_schedule_mat_dnrm2 = MP_schedule_mm_dnrm2(row_dim, col_dim, M1);
         MP_schedule_mm_dnrm2_end = chrono::system_clock::now();
 
         // 時間計測結果をミリ秒に変換
@@ -475,12 +475,12 @@ void test_mm_dnrm2(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
     ofs_time.close();
 
     /*---------------------- -メモリの開放-----------------------*/
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
         delete[] M1[i];
     delete[] M1;
 };
 
-void test_mm_dscal(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
+void test_mm_dscal(int trial_num, int row_dim, int col_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
 {
 
     // 初期状態行列の用意
@@ -488,21 +488,21 @@ void test_mm_dscal(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
     mt19937 mt(rand());
     uniform_real_distribution<> rand1(0, 0.001);
 
-    double **M1 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M1[i] = new double[mat_dim];
+    double **M1 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M1[i] = new double[col_dim];
 
-    double **M2 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M2[i] = new double[mat_dim];
+    double **M2 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M2[i] = new double[col_dim];
 
-    double **M3 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M3[i] = new double[mat_dim];
+    double **M3 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M3[i] = new double[col_dim];
 
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             M1[i][j] = rand1(mt);
             M2[i][j] = M1[i][j];
@@ -529,19 +529,19 @@ void test_mm_dscal(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
         //[3/10]計算結果の確認方法を修正する
         // About mm_dscal
         mm_dscal_start = chrono::system_clock::now();
-        mm_dscal(mat_dim, 0.5, M1);
+        mm_dscal(row_dim, col_dim, 0.5, M1);
         mm_dscal_end = chrono::system_clock::now();
 
         // //  About MP_mm_dscal
         MP_mm_dscal_start = chrono::system_clock::now();
-        MP_mm_dscal(mat_dim, 0.5, M2);
+        MP_mm_dscal(row_dim, col_dim, 0.5, M2);
         MP_mm_dscal_end = chrono::system_clock::now();
 
         // // 正しく並列計算を行うことができているかの確認
         cout << "Now checking result of calculation. Please wait ...\n";
-        for (int i = 0; i < mat_dim; i++)
+        for (int i = 0; i < row_dim; i++)
         {
-            for (int j = 0; j < mat_dim; j++)
+            for (int j = 0; j < col_dim; j++)
             {
                 if (M1[i][j] != M2[i][j])
                     is_ok_MP_mm_dscal = false;
@@ -555,14 +555,14 @@ void test_mm_dscal(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
 
         // // About MP_schedule_mm_dscal
         MP_schedule_mm_dscal_start = chrono::system_clock::now();
-        MP_schedule_mm_dscal(mat_dim, 0.5, M3);
+        MP_schedule_mm_dscal(row_dim, col_dim, 0.5, M3);
         MP_schedule_mm_dscal_end = chrono::system_clock::now();
 
         // // 正しく並列計算を行うことができているかの確認
         cout << "Now checking result of calculation. Please wait ...\n";
-        for (int i = 0; i < mat_dim; i++)
+        for (int i = 0; i < row_dim; i++)
         {
-            for (int j = 0; j < mat_dim; j++)
+            for (int j = 0; j < col_dim; j++)
             {
                 if (M1[i][j] != M3[i][j])
                     is_ok_MP_schedule_mm_dscal = false;
@@ -677,45 +677,45 @@ void test_mm_dscal(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
     ofs_time.close();
 
     /*---------------------- -メモリの開放-----------------------*/
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
         delete[] M1[i];
     delete[] M1;
 
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
         delete[] M2[i];
     delete[] M2;
 
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
         delete[] M3[i];
     delete[] M3;
 };
 
-void test_mm_daxpy(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
+void test_mm_daxpy(int trial_num, int row_dim, int col_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
 {
     // 初期状態行列の用意
     random_device rand;
     mt19937 mt(rand());
     uniform_real_distribution<> rand1(0, 0.001);
 
-    double **M1 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M1[i] = new double[mat_dim];
+    double **M1 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M1[i] = new double[col_dim];
 
-    double **M2 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M2[i] = new double[mat_dim];
+    double **M2 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M2[i] = new double[col_dim];
 
-    double **M3 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M3[i] = new double[mat_dim];
+    double **M3 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M3[i] = new double[col_dim];
 
-    double **M4 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M4[i] = new double[mat_dim];
+    double **M4 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M4[i] = new double[col_dim];
 
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             M1[i][j] = rand1(mt);
             M2[i][j] = 0.0;
@@ -746,21 +746,21 @@ void test_mm_daxpy(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
     {
         // About mm_daxpy
         mm_daxpy_start = chrono::system_clock::now();
-        mm_daxpy(mat_dim, 0.5, M1, M2);
+        mm_daxpy(row_dim, col_dim, 0.5, M1, M2);
         mm_daxpy_end = chrono::system_clock::now();
         M2_13.push_back(M2[1][3]);
         M2_tt.push_back(M2[10][10]);
 
         //  About MP_mm_daxpy
         MP_mm_daxpy_start = chrono::system_clock::now();
-        MP_mm_daxpy(mat_dim, 0.5, M1, M3);
+        MP_mm_daxpy(row_dim, col_dim, 0.5, M1, M3);
         MP_mm_daxpy_end = chrono::system_clock::now();
         M3_13.push_back(M3[1][3]);
         M3_tt.push_back(M3[10][10]);
 
         // About MP_schedule_mm_daxpy
         MP_schedule_mm_daxpy_start = chrono::system_clock::now();
-        MP_schedule_mm_daxpy(mat_dim, 0.5, M1, M4);
+        MP_schedule_mm_daxpy(row_dim, col_dim, 0.5, M1, M4);
         MP_schedule_mm_daxpy_end = chrono::system_clock::now();
         M4_13.push_back(M4[1][3]);
         M4_tt.push_back(M4[10][10]);
@@ -857,24 +857,24 @@ void test_mm_daxpy(int trial_num, int mat_dim, std::string PATH_result_of_calc, 
     ofs_time.close();
 
     /*---------------------- -メモリの開放-----------------------*/
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
         delete[] M1[i];
     delete[] M1;
 
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
         delete[] M2[i];
     delete[] M2;
 
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
         delete[] M3[i];
     delete[] M3;
 
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
         delete[] M4[i];
     delete[] M4;
 };
 
-void test_mm_sdz(int trial_num, int mat_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
+void test_mm_sdz(int trial_num, int row_dim, int col_dim, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
 {
     // 初期状態行列の用意
     random_device rand;
@@ -882,23 +882,23 @@ void test_mm_sdz(int trial_num, int mat_dim, std::string PATH_result_of_calc, st
     uniform_real_distribution<> rand1(0, 0.001);
 
     // 規格化する状態行列
-    double **M1 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M1[i] = new double[mat_dim];
+    double **M1 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M1[i] = new double[col_dim];
 
     // 規格化する状態行列1
-    double **M2 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M2[i] = new double[mat_dim];
+    double **M2 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M2[i] = new double[col_dim];
 
     // 規格化する状態行列2
-    double **M3 = new double *[mat_dim];
-    for (int i = 0; i < mat_dim; i++)
-        M3[i] = new double[mat_dim];
+    double **M3 = new double *[row_dim];
+    for (int i = 0; i < row_dim; i++)
+        M3[i] = new double[col_dim];
 
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
     {
-        for (int j = 0; j < mat_dim; j++)
+        for (int j = 0; j < col_dim; j++)
         {
             M1[i][j] = rand1(mt);
             M2[i][j] = M1[i][j];
@@ -928,33 +928,33 @@ void test_mm_sdz(int trial_num, int mat_dim, std::string PATH_result_of_calc, st
     {
         // About mm_sdz
         mm_sdz_start = chrono::system_clock::now();
-        mm_sdz(mat_dim, M1);
+        mm_sdz(row_dim, col_dim, M1);
         mm_sdz_end = chrono::system_clock::now();
         M2_13.push_back(M1[1][3]);
         M2_tt.push_back(M1[10][10]);
 
         // M1をもとの行列に初期化する
-        MP_mm_dcopy(mat_dim, M2, M1);
+        MP_mm_dcopy(row_dim, col_dim, M2, M1);
 
         //  About MP_mm_sdz
         MP_mm_sdz_start = chrono::system_clock::now();
-        MP_mm_sdz(mat_dim, M2);
+        MP_mm_sdz(row_dim, col_dim, M2);
         MP_mm_sdz_end = chrono::system_clock::now();
         M3_13.push_back(M2[1][3]);
         M3_tt.push_back(M2[10][10]);
 
         // M2をもとの行列に初期化する
-        MP_mm_dcopy(mat_dim, M1, M2);
+        MP_mm_dcopy(row_dim, col_dim, M1, M2);
 
         // About MP_schedule_mm_sdz
         MP_schedule_mm_sdz_start = chrono::system_clock::now();
-        MP_schedule_mm_sdz(mat_dim, M3);
+        MP_schedule_mm_sdz(row_dim, col_dim, M3);
         MP_schedule_mm_sdz_end = chrono::system_clock::now();
         M4_13.push_back(M3[1][3]);
         M4_tt.push_back(M3[10][10]);
 
         // M2をもとの行列に初期化する
-        MP_mm_dcopy(mat_dim, M1, M3);
+        MP_mm_dcopy(row_dim, col_dim, M1, M3);
 
         // 時間計測結果をミリ秒に変換
         auto mm_sdz_time_msec = chrono::duration_cast<chrono::milliseconds>(mm_sdz_end - mm_sdz_start).count();
@@ -1048,20 +1048,20 @@ void test_mm_sdz(int trial_num, int mat_dim, std::string PATH_result_of_calc, st
     ofs_time.close();
 
     /*---------------------- -メモリの開放-----------------------*/
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
         delete[] M1[i];
     delete[] M1;
 
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
         delete[] M2[i];
     delete[] M2;
 
-    for (int i = 0; i < mat_dim; i++)
+    for (int i = 0; i < row_dim; i++)
         delete[] M3[i];
     delete[] M3;
 };
 
-void test_isoA_mmprod(int trial_num, int dim_A, int dim_B, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
+void test_isoA_calc_alpha(int trial_num, int dim_A, int dim_B, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
 {
     // 初期状態行列の用意
     // dim_A, dim_Bは4とする
@@ -1775,4 +1775,287 @@ void test_int_zz_mmprod(int trial_num, int dim_A, int dim_B, std::string PATH_re
 
     delete[] sz_A;
     delete[] sz_B;
+};
+
+void test_calc_alpha(int trial_num, int dim_A, int dim_B, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
+{
+    // 行列計算の例として8site totalS^z = 1での(S_A^z , S_B^z) = (0,1)での計算を考える
+    random_device rand;
+    mt19937 mt(rand());
+    uniform_real_distribution<> rand1(0, 0.1);
+    uniform_real_distribution<> rand2(0, 0.1);
+    // V1は6行4列の状態行列
+    double **V1 = new double *[dim_A];
+    for (int i = 0; i < dim_A; i++)
+        V1[i] = new double[dim_B];
+
+    // V2は6行4列の状態行列
+    double **V2 = new double *[dim_A];
+    for (int i = 0; i < dim_A; i++)
+        V2[i] = new double[dim_B];
+
+    for (int i = 0; i < dim_A; i++)
+    {
+        for (int j = 0; j < dim_B; j++)
+        {
+            V1[i][j] = rand1(mt);
+            V2[i][j] = rand2(mt);
+        }
+    }
+
+    // 三重対角行列の主体各成分α
+    double *alpha1 = new double[10];
+    for (int i = 0; i < 10; i++)
+        alpha1[i] = 0.0;
+
+    double *alpha2 = new double[10];
+    for (int i = 0; i < 10; i++)
+        alpha2[i] = 0.0;
+
+    // 疎行列ｰ密行列積の実施と計算時間の測定を行う
+    chrono::system_clock::time_point calc_alpha_start, MP_calc_alpha_start, calc_alpha_end, MP_calc_alpha_end;
+    cout << "\n\n Test : calc_alpha\n";
+    cout << "====================================================\n";
+
+    // 計算の時間測定結果を格納する
+    vector<double> time_calc_alpha;
+    vector<double> time_MP_calc_alpha;
+
+    // trial_num回だけテストを実施する
+    std::ofstream ofs_calc(PATH_result_of_calc);
+    for (int i = 0; i < trial_num; i++)
+    {
+        // About isoA_calc_alpha
+        calc_alpha_start = chrono::system_clock::now();
+        calc_alpha(5, dim_A, dim_B, alpha1, V1, V2);
+        calc_alpha_end = chrono::system_clock::now();
+
+        // About MP_isoA_calc_alpha
+        MP_calc_alpha_start = chrono::system_clock::now();
+        MP_calc_alpha(5, dim_A, dim_B, alpha2, V1, V2);
+        MP_calc_alpha_end = chrono::system_clock::now();
+
+        // 時間計測結果をミリ秒に変換
+        auto calc_alpha_time_msec = chrono::duration_cast<chrono::milliseconds>(calc_alpha_end - calc_alpha_start).count();
+        auto MP_calc_alpha_msec = chrono::duration_cast<chrono::milliseconds>(MP_calc_alpha_end - MP_calc_alpha_start).count();
+
+        // 時間計測結果を各種配列に保存する
+        time_calc_alpha.push_back(calc_alpha_time_msec);
+        time_MP_calc_alpha.push_back(MP_calc_alpha_msec);
+
+        // 計算結果をファイル出力する
+        // fileをopenできる確認する
+        if (!ofs_calc)
+        {
+            printf("@test_calc_alpha error:: \"%s\" could not open.", PATH_result_of_calc.c_str());
+        }
+        else
+        {
+            if (mode == 'c') // csv出力
+            {
+                ofs_calc << "@calc_alpha's result @trial_num = " << i << endl;
+                ofs_calc << "--------------------------------------\n";
+                ofs_calc << setprecision(16) << alpha1[5] << " , " << alpha2[5] << endl;
+                ofs_calc << "--------------------------------------\n";
+            }
+        }
+        for (int i = 0; i < 10; i++)
+        {
+            alpha1[i] = 0.0;
+            alpha2[i] = 0.0;
+        }
+    }
+    ofs_calc.close();
+
+    std::ofstream ofs_time(PATH_result_of_time);
+    // fileをopenできるか確認する
+    if (!ofs_time)
+    {
+        printf("@test1_calc_alpha error:: \"%s\" could not open.", PATH_result_of_time.c_str());
+    }
+    else
+    {
+        if (mode == 'c') // csv出力
+        {
+            ofs_time << "Normal"
+                     << ","
+                     << "OpenMP"
+                     << endl;
+            for (int i = 0; i < trial_num; i++)
+            {
+                ofs_time << time_calc_alpha[i] << "," << time_MP_calc_alpha[i] << std::endl;
+            }
+        }
+        else // txt出力
+        {
+            for (int i = 0; i < trial_num; i++)
+            {
+                ofs_time << time_calc_alpha[i] << " " << time_MP_calc_alpha[i] << std::endl;
+            }
+        }
+    }
+    ofs_time.close();
+
+    // relase memory
+    for (int i = 0; i < dim_A; i++)
+        delete[] V1[i];
+    delete[] V1;
+
+    for (int i = 0; i < dim_A; i++)
+        delete[] V2[i];
+    delete[] V2;
+
+    delete[] alpha1;
+    delete[] alpha2;
+};
+
+void test_calc_beta_even(int trial_num, int dim_A, int dim_B, std::string PATH_result_of_calc, std::string PATH_result_of_time, char mode)
+{
+    // 行列計算の例として8site totalS^z = 1での(S_A^z , S_B^z) = (0,1)での計算を考える
+    random_device rand;
+    mt19937 mt(rand());
+    uniform_real_distribution<> rand1(0, 0.1);
+    // V1は6行4列の状態行列
+    double **V1 = new double *[dim_A];
+    for (int i = 0; i < dim_A; i++)
+        V1[i] = new double[dim_B];
+
+    // V2は6行4列の状態行列
+    double **V2 = new double *[dim_A];
+    for (int i = 0; i < dim_A; i++)
+        V2[i] = new double[dim_B];
+
+    for (int i = 0; i < dim_A; i++)
+    {
+        for (int j = 0; j < dim_B; j++)
+        {
+            V1[i][j] = 0.0;
+            V2[i][j] = rand1(mt);
+        }
+    }
+
+    // 三重対角行列の主体各成分α
+    double *alpha1 = new double[10];
+    for (int i = 0; i < 10; i++)
+    {
+        alpha1[i] = rand1(mt);
+    }
+
+    // 三重対角行列の次対角成分β
+    double *beta1 = new double[10];
+    double *beta2 = new double[10];
+    for (int i = 0; i < 10; i++)
+    {
+        beta1[i] = 0.;
+        beta2[i] = 0.;
+    }
+
+    // 疎行列ｰ密行列積の実施と計算時間の測定を行う
+    chrono::system_clock::time_point calc_beta_start, MP_calc_beta_start, calc_beta_end, MP_calc_beta_end;
+    cout << "\n\n Test : calc_beta\n";
+    cout << "====================================================\n";
+
+    // 計算の時間測定結果を格納する
+    vector<double> time_calc_beta;
+    vector<double> time_MP_calc_beta;
+
+    // trial_num回だけテストを実施する
+    std::ofstream ofs_calc(PATH_result_of_calc);
+    for (int i = 0; i < trial_num; i++)
+    {
+        // About isoA_calc_alpha
+        beta1[5] = 0.0;
+        calc_beta_start = chrono::system_clock::now();
+        calc_beta_even_step(10, 5, alpha1, beta1, V1, V2);
+        calc_beta_end = chrono::system_clock::now();
+
+        for (int i = 0; i < dim_A; i++)
+        {
+            for (int j = 0; j < dim_B; j++)
+            {
+                V1[i][j] = 0.0;
+            }
+        }
+
+        // About MP_isoA_calc_alpha
+        MP_calc_beta_start = chrono::system_clock::now();
+        MP_calc_beta_even_step(10, 5, alpha1, beta2, V1, V2);
+        MP_calc_beta_end = chrono::system_clock::now();
+
+        for (int i = 0; i < dim_A; i++)
+        {
+            for (int j = 0; j < dim_B; j++)
+            {
+                V1[i][j] = 0.0;
+            }
+        }
+
+        // 時間計測結果をミリ秒に変換
+        auto calc_beta_time_msec = chrono::duration_cast<chrono::milliseconds>(calc_beta_end - calc_beta_start).count();
+        auto MP_calc_beta_msec = chrono::duration_cast<chrono::milliseconds>(MP_calc_beta_end - MP_calc_beta_start).count();
+
+        // 時間計測結果を各種配列に保存する
+        time_calc_beta.push_back(calc_beta_time_msec);
+        time_MP_calc_beta.push_back(MP_calc_beta_msec);
+
+        // 計算結果をファイル出力する
+        // fileをopenできる確認する
+        if (!ofs_calc)
+        {
+            printf("@test_calc_alpha error:: \"%s\" could not open.", PATH_result_of_calc.c_str());
+        }
+        else
+        {
+            if (mode == 'c') // csv出力
+            {
+                ofs_calc << "@calc_alpha's result @trial_num = " << i << endl;
+                ofs_calc << "--------------------------------------\n";
+                ofs_calc << setprecision(16) << beta1[5] << " , " << beta2[5] << endl;
+                ofs_calc << "--------------------------------------\n";
+            }
+        }
+    }
+    ofs_calc.close();
+
+    std::ofstream ofs_time(PATH_result_of_time);
+    // fileをopenできるか確認する
+    if (!ofs_time)
+    {
+        printf("@test1_calc_alpha error:: \"%s\" could not open.", PATH_result_of_time.c_str());
+    }
+    else
+    {
+        if (mode == 'c') // csv出力
+        {
+            ofs_time << "Normal"
+                     << ","
+                     << "OpenMP"
+                     << endl;
+            for (int i = 0; i < trial_num; i++)
+            {
+                ofs_time << time_calc_beta[i] << "," << time_MP_calc_beta[i] << std::endl;
+            }
+        }
+        else // txt出力
+        {
+            for (int i = 0; i < trial_num; i++)
+            {
+                ofs_time << time_calc_beta[i] << " " << time_MP_calc_beta[i] << std::endl;
+            }
+        }
+    }
+    ofs_time.close();
+
+    // relase memory
+    for (int i = 0; i < dim_A; i++)
+        delete[] V1[i];
+    delete[] V1;
+
+    for (int i = 0; i < dim_A; i++)
+        delete[] V2[i];
+    delete[] V2;
+
+    delete[] alpha1;
+    delete[] beta1;
+    delete[] beta2;
 };
